@@ -1,97 +1,167 @@
-# Research, Analyse & Development Report (Group Work)
+# Research, Analyse & Development Report — Group Work
 
-> 使用此大纲起草正文后，将内容复制进官方封面模板 `Documents/ReportOnResearchAnalyseDevelopment_Cover.doc`，应用 Word 样式并导出 PDF。
+Cover Page
+- Group Name: AIGEN
+- Group No.: TBA
+- Project Title: Arcane Souls: Rebirth
+- Advisor: Jussi Pekka HOLOPAINEN (SCM)
+- Course Code: SM4712B
+- Students:
+  - Lee Chun Kit (SID: 57306141, EID: cklee96) — Group Leader
+  - Lam Chi Him (SID: 57185861, EID: kelvilam6)
+- Submission Date: 31 July 2025
+- Individual Blogs:
+  - Lee Chun Kit: https://leechunkit01255210.wixsite.com/e-portfolio
+  - Lam Chi Him: https://nihonjin864.wixsite.com/lamchihim
 
----
+Abstract (≈180–220 words)
+Arcane Souls: Rebirth is a 2D anime‑style action‑adventure developed with Unreal Engine 5 (UE5) that fuses the deliberate, timing‑based combat philosophy of Sekiro: Shadows Die Twice with a hand‑drawn aesthetic and a narrative of rebirth. The project seeks to address the gap between high‑fidelity 3D “souls‑like” titles and stylized 2D games by delivering precise posture‑driven combat, responsive parry/dodge systems, and emotionally resonant storytelling through cinematic presentation and environmental cues. Technically, we adapt UE5 features—Lumen lighting, Behavior Trees, and Paper2D—into a performant 2D pipeline targeting 60 FPS at up to 4K, with modular level design for replayability and accessibility options such as adjustable parry timing windows. The research component spans mechanic design for player skill mastery, enemy AI responsiveness, and interaction design for smooth motion feedback. Planned deliverables include anime‑style art assets, five distinct levels, and robust AI across at least ten enemy archetypes. Milestones progress from concept and prototyping through full‑scale development, balancing, and optimization. This report presents the problem framing, literature context, methodology, requirements and design, development plan, evaluation approach, and risk management, laying the foundation for iterative builds that honor souls‑like challenge while innovating in 2D game expression.
 
-## Cover Page（封面）
-- 使用官方封面模板：`Documents/ReportOnResearchAnalyseDevelopment_Cover.doc`
-- 填写：Group Number、Project Title、Supervisor、Group Members（姓名+学号）、Submission Date
+Table of Contents
+- 1. Introduction
+- 2. Related Work / Literature Review
+- 3. Research Questions and Methodology
+- 4. Requirements and Design
+- 5. Development Process
+- 6. Analysis and Results
+- 7. Testing and Quality Assurance
+- 8. Project Management
+- 9. Limitations and Future Work
+- 10. Conclusion
+- References
+- Appendices
 
-## Abstract（150–250字）
-- 问题、方法、关键结果与意义的精炼概述。
+## 1. Introduction
+Background and Motivation
+Souls‑like games emphasize precise, timing‑based combat and high‑stakes encounters that reward mastery. Contemporary engines primarily showcase 3D realism, leaving an opportunity for 2D titles that preserve depth of challenge with expressive anime presentation. We aim to merge these strengths in a UE5‑based 2D pipeline.
 
-## Table of Contents（目录）
-- 在 Word 中应用标题样式后自动生成。
+Problem Statement and Scope
+There is an underrepresentation of challenging, posture‑centric 2D action games with polished visuals and responsive AI. Scope covers a vertical slice demonstrating posture‑based combat, enemy behaviors, and modular levels within UE5, targeting Windows PC.
 
-## 1. Introduction（引言）
-- 背景与动机（情境、利益相关者、影响）
-- 问题定义与范围
-- 目标与成功标准（可量化）
-- 本报告贡献点
+Objectives and Success Criteria
+- Creative: Deliver a cohesive anime aesthetic with cinematic storytelling consistent with themes of rebirth and arcane mystery.
+- Technical: Achieve responsive parry/dodge/combo mechanics; integrate Lumen‑aware 2D lighting; implement Behavior Tree‑driven AI.
+- Performance: Target 60 FPS at 1080p–4K on mid‑range PCs; input latency suitable for precise parry windows (<100 ms end‑to‑end).
+- Usability: Clear telegraphs and feedback (animation, SFX, VFX) measured by player success rates and post‑test surveys.
 
-## 2. Related Work / Literature Review（相关工作/文献）
-- 归纳 5–10 篇关键参考（方法、数据、基准）
-- 对比优缺点与研究空白（你的工作如何补足）
-- 引用格式统一（APA/IEEE 任一一致使用）
+Contributions
+- A reproducible 2D souls‑like combat model in UE5.
+- A design framework for posture/guard‑break mechanics in 2D.
+- Practical patterns for 2D lighting, animation, and AI in UE5.
 
-## 3. Research Questions and Methodology（研究问题与方法）
-- 研究问题/假设
-- 方法论：定性/定量/混合；数据来源；抽样；工具与流程
-- 使用的技术/框架与选择理由
-- 有效性、信度与伦理考量
+## 2. Related Work / Literature Review
+- Souls‑like combat design: timing, telegraphing, posture/poise models.
+- Enemy AI in action games: finite state machines, Behavior Trees, and designer‑friendly authoring.
+- 2D pipelines in modern engines: Paper2D, sprite animation, lighting/shadowing for stylized art.
+- Player experience research on difficulty, flow, and mastery.
+Note: Formal references to be finalized in a consistent style (APA/IEEE). Candidate sources: Sekiro design analyses; UE5 Paper2D/AI docs; academic works on Behavior Trees and game difficulty.
 
-## 4. Requirements and Design（需求与设计）
-- 功能与非功能需求
-- 用户故事/用例与验收标准
-- 系统架构（图）、数据流与组件划分
-- UI/UX 线框/原型（大图放附录）
+## 3. Research Questions and Methodology
+Research Questions
+- RQ1: How can posture‑based combat be adapted to 2D to preserve souls‑like depth and fairness?
+- RQ2: What AI behavior patterns best elicit mastery without frustration in 2D timing‑centric combat?
+- RQ3: How do visual/audio telegraphs influence parry timing accuracy and perceived responsiveness?
 
-## 5. Development Process（开发过程）
-- 开发流程（Agile/Scrum/Kanban/Waterfall）与理由
-- 迭代/冲刺概览、任务与产出
-- 关键实现（模块、算法、架构决策）
-- 版本控制与分支策略
+Methodology
+- Approach: Mixed‑methods. Quantitative telemetry (parry success rate, posture break times, frame times). Qualitative think‑aloud and SUS/game‑specific questionnaires.
+- Data Sources: Internal playtests across iterative prototypes; task scenarios focusing on parry, dodge, and counter.
+- Instruments: In‑game logging, screen capture, post‑session surveys.
+- Validity & Ethics: Informed consent for testers, anonymized data, reproducible builds with fixed seeds and configs.
 
-## 6. Analysis and Results（分析与结果）
-- 数据预处理与分析方法
-- 实验/评测设定（数据集、环境、指标）
-- 结果展示（图表）与观察
-- 讨论：解释、洞见与意义
+## 4. Requirements and Design
+Functional Requirements
+- FR1: Posture/guard system with decisive strike on break.
+- FR2: Parry, dodge, and timing‑based counter mechanics.
+- FR3: Enemy AI across ≥10 archetypes with adaptive patterns via Behavior Trees.
+- FR4: At least five handcrafted levels with modular/replayable segments.
+- FR5: Cinematic cutscenes and environmental storytelling beats.
 
-## 7. Testing and Quality Assurance（测试与质量）
-- 测试计划与覆盖（单元/集成/系统/可用性）
-- 性能与安全性检查（如适用）
-- 缺陷跟踪与解决概述
+Non‑Functional Requirements
+- NFR1: 60 FPS target at 1080p–4K; input latency suitable for parry windows.
+- NFR2: Configurable difficulty for timing windows and damage models.
+- NFR3: Accessibility options (e.g., visual/audio telegraph clarity, colorblind‑safe palettes).
 
-## 8. Project Management（项目管理）
-- 角色与职责（需要可用 RACI）
-- 时间线/Gantt 与里程碑（插入图表，源图放附录）
-- 风险台账：风险、概率/影响、缓解措施
-- 资源与预算（如适用）
+Acceptance Criteria (Examples)
+- AC1: Average skilled players achieve ≥60% parry success by the second session.
+- AC2: Boss posture breaks occur within 45–120 seconds in baseline difficulty.
+- AC3: Frame time p95 < 20 ms on target hardware during combat scenes.
 
-## 9. Limitations and Future Work（局限与未来工作）
-- 现有限制与已知问题
-- 下一步与增强路线
+System Architecture (Overview)
+- UE5 project using Paper2D for sprites/flipbooks; Lumen‑aware 2D lighting where applicable.
+- Gameplay layer: posture, stamina/poise, damage, and i‑frames.
+- AI layer: Behavior Trees and blackboard data for stateful reactions.
+- Level framework: modular rooms, spawn tables, and encounter scripting.
 
-## 10. Conclusion（结论）
-- 回顾目标与达成度
-- 关键收获与价值
+UI/UX
+- Clear telegraphs (anticipation frames, SFX/VFX cues).
+- Diegetic feedback for posture status; concise HUD for stamina/posture.
 
-## References（参考文献）
-- 统一引用格式（APA 或 IEEE）。确保文中引用均在此列出。
+## 5. Development Process
+Process Model
+- Agile‑leaning iterative development with short playtest cycles.
 
-## Appendices（附录）
-- A. 调研问卷/访谈提纲
-- B. 附加图表/结果
-- C. 截图、UI Mockups
-- D. 代码仓库链接与主要提交哈希
+Milestones (from proposal)
+- Concept & Pre‑production (Month 1): Game concept, GDD, initial art.
+- Prototyping (Months 2–3): Core combat loop, posture, parry timing sandbox.
+- Development (Months 4–8): Levels, AI archetypes, content pipeline.
+- Testing (Months 9–10): Balancing, bug fixing, usability tests.
+- Optimization (Month 11): Performance tuning, asset polish.
+- Release (Month 12): Final testing, packaging, and release prep.
 
----
+Version Control & Branching
+- Main (stable), develop (integration), feature/* (mechanics, AI, levels), hotfix/*.
 
-### Authoring & Submission Notes（写作与提交）
-- 必须使用官方封面模板，格式按课件要求统一。
-- 应用 Word 标题样式自动生成目录；为图表添加题注与编号。
-- 导出 PDF（嵌入字体）。建议文件名：`FYP_Group<NN>_Research-Analyse-Development_Report.pdf`。
-- 每位成员：将 PDF 发布到个人项目博客。
-- 组长：于 10/24 23:59 前在指定渠道提交电子版。
+## 6. Analysis and Results
+Evaluation Plan
+- Metrics: parry accuracy, time‑to‑posture‑break, deaths per encounter, frame time stats.
+- Experiments: difficulty variants of parry windows; AI aggressiveness tuning; lighting impact on readability.
+- Reporting: plots for learning curves across sessions; heatmaps for player failure points.
 
-### Self-Check（导出前自查）
-- [ ] 封面信息完整且一致
-- [ ] 目标可量化并与问题对齐
-- [ ] 方法可复现且含伦理与效度说明
-- [ ] 架构/设计图清晰并对应需求
-- [ ] 结果以数据支撑，讨论回扣目标
-- [ ] 参考文献完整且格式统一
-- [ ] 图表编号/题注齐全；目录已更新
-- [ ] PDF 可在另一设备正常打开显示
+Current Findings (to be updated during sprints)
+- Prototype telemetry baselines and usability feedback will populate this section.
+
+## 7. Testing and Quality Assurance
+- Unit tests for posture calculations and hit detection.
+- Integration tests for AI behavior trees and encounter scripts.
+- System tests for performance and loading; GPU/CPU profiling.
+- Usability tests with task scenarios; surveys (SUS + custom scales).
+- Defect tracking with severity/priority triage; regression gates before merges to main.
+
+## 8. Project Management
+Roles & Responsibilities
+- Lee Chun Kit: Combat systems, AI behavior authoring, integration lead.
+- Lam Chi Him: Level design, art/animation pipeline, UI/UX and VFX cues.
+
+Timeline & Resources
+- Platform: PC (Windows).
+- Engine/Tools: Unreal Engine 5, Paper2D, Behavior Trees, Blueprints.
+- Risks: Performance with complex scenes; AI tuning; content scope creep.
+- Mitigation: Budgeted profiling sprint; AI tuning playbooks; content cut criteria.
+
+## 9. Limitations and Future Work
+- Adapting Lumen and high‑fidelity effects to a 2D pipeline may constrain lower‑end hardware.
+- Behavior Tree complexity can grow; consider utility AI for scalability.
+- Future: Additional enemy/boss variety, advanced accessibility presets, controller haptics, and console ports.
+
+## 10. Conclusion
+We outlined the rationale and plan for a 2D souls‑like in UE5, defined objectives and evaluation criteria, and detailed design and process structures. Next sprints will validate combat feel, AI readability, and performance, iterating toward a polished vertical slice.
+
+References (Placeholders — finalize in one consistent style)
+- FromSoftware. Sekiro: Shadows Die Twice, 2019.
+- Epic Games. Unreal Engine 5 Documentation: Paper2D, Behavior Trees, and Lumen.
+- Selected academic/industry sources on Behavior Trees, flow, and difficulty design.
+
+Appendices
+A. Deliverables (from proposal)
+- 2D anime‑style art assets (characters, enemies, environments, UI).
+- Five distinct levels with modular designs.
+- Enemy AI system with ≥10 archetypes using Behavior Trees.
+B. Production Plan & Schedule (table/figure to insert in Word)
+C. Additional figures: architecture diagrams, UI mockups, encounter scripts
+
+Authoring & Submission Notes
+- Copy this content under the official cover `Documents/ReportOnResearchAnalyseDevelopment_Cover.doc`.
+- Apply Heading styles for automatic ToC; caption all figures/tables.
+- Export to PDF with fonts embedded. Suggested name: FYP_Group<NN>_Research-Analyse-Development_Report.pdf.
+- Each member: publish the PDF to your individual project blog.
+- Group leader: submit by 24 Oct, 11:59pm as per LMS instructions.
