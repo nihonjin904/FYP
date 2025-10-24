@@ -1,0 +1,626 @@
+BScCM Final Year Project 2025 – 2026 
+Declaration and Project Proposal Form 
+
+<< Group Name: AIGEN ; Group No.: TBA >> 
+
+<< Arcane Souls: Rebirth >> 
+
+Student Name/EID 
+
+:  Lee Chun Kit / 57306141 
+
+Student Name/EID 
+
+:  Lam Chi Him / 57185861 
+
+Student Name/EID 
+
+:   
+
+Course Code 
+
+:  SM4712B 
+
+Advisor 
+
+    Name: Jussi Pekka HOLOPAINEN 
+    Position: Advisor 
+    School/Department: SCM 
+
+Date 
+Version 
+
+:  31st July 2025 
+:  Draft 
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 1 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Notes to BScCM Final Year Graduation Students: 
+
+1.  Pre-requisites of BScCM FYP: Completion of 18 credit major core courses 
+2.  The student must obtain potential advisor’s consent, agreement and signature before submitting this form.   
+
+The School is not responsible for arranging an advisor for any student. The yearlong graduation project will be 
+supervised by SCM or CS faculty or teaching staff. Please refer to the lists of CS and SCM staff members and their 
+areas of interests who may take up the role as advisors in the CANVAS. 
+
+3.  Advisors may contact the student for modification of the project proposal, if required, before the student could 
+
+formally start the final year project in the summer term. 
+
+4.  The student can only change the advisor and FYP topic within the first week of Semester A with strong 
+
+justification and approval from the SCM or CS advisor, and the course leader. Once approved, the student must 
+complete this form again and inform the SCM or CS advisor, the course leader and the SCM General Office of the 
+changes.  Major changes after this period are not allowed. If the student insists, the student is required to provide 
+substantial justifications for the School’s consideration. 
+
+5.  The student must conduct the research, analyse and development of their FYP during the summer term. Base on 
+
+the outcome, the student is required to refine, consolidate and resubmit a final version of this form as the 
+“Contract of FYP” at the beginning of semester A. 
+
+Notes to the student who are going to exchange in semester A/B :  
+
+It is not a normal practice to take a course while you are on exchange. Hence, prior approval from the School is 
+required.  If you intend to register for FYP while on exchange, you need to provide the supporting statement from your 
+advisor and submit the justification with this form to the BScCM Programme Leader and SCM Associate Dean for 
+consideration. Among other things, the following information is required: 
+
+1.  What is the nature of the project (group or individual)?  
+2.  What is the role of the student if it is a group project?  
+3.  What contributions can the student perform in the semester on exchange?  
+4.  What monitoring mechanism will be in place to ensure student's participation in the project before and after 
+
+the exchange?  
+
+5.  Whether the registration of FYP while on exchange is supported by the SCM or CS advisor?  
+
+(Note: Please attached and submitted your justification with this Declaration Form) 
+
+Please contact SCM Office - Sheree Leung (Sheree.Leung@cityu.edu.hk or 3442 4825) if you have any enquiries about 
+the above procedures related to student exchange. 
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 2 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+DECLARATION & GROUP LIST 
+
+I hereby acknowledge and accept to begin the enrollment process for the yearlong final year graduation project (FYP) 
+by completing and submitting this declaration form with the approval and signature by my advisor on or before the 
+deadline. 
+
+(Important Note: Late submission of this declaration will not be accepted nor processed. The school will assume the student opt NOT to 
+enroll into the final year graduation project and will not submitted the student’s name to ARRO for course registration.) 
+
+Note: Each group needs to submit one form only. There should be no more than 3 students per group. FYP grouping with BA/BAS 
+student(s) is possible. Please consult and get approval from the BScCM FYP course coordinator for the detail arrangement. The BA/BAS 
+student must consult and get approval from their BA/BAS course coordinator too. 
+
+* Delete as appropriate 
+
+Student Full Name (In block letter as on your ID Card) 
+1 (Group Leader) 
+
+2 
+
+ Lee Chun Kit  
+
+Lam Chi Him 
+
+Nickname 
+1 (Group Leader) 
+
+Kit 
+CityU EID 
+1 (Group Leader) 
+cklee96 
+
+CityU SID 
+1 (Group Leader) 
+5730 6141 
+
+2 
+
+Kelvin 
+
+2 
+kelvilam6 
+
+2 
+5718 5861 
+
+Personal Email 
+1 (Group Leader) 
+leechunkit01255210@gmail.com 
+
+3 
+nihonjin904@gmail.com 
+
+Mobile Number 
+1 (Group Leader) 
+6417 5602 
+
+2 
+5199 0983 
+
+Weekly Project Blog (Individual Weblog URL) 
+1 (Group Leader) 
+https://leechunkit01255210.wixsite.com/e-
+portfolio 
+
+3 
+
+https://nihonjin864.wixsite.com/lamchihim 
+
+Signature 
+
+1 (Group Leader) 
+ Lee Chun Kit 
+
+2 
+Lam 
+
+Date: 31th July 2025 
+
+3 
+
+3 
+
+3 
+
+3 
+
+3 
+
+3 
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 3 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+PROJECT PROPOSAL 
+
+(A)   Nature of Proposed Topics:  
+
+(Please put a ☑ in the box for your desired Project Nature. Your Project can contain more than one element 
+of the below, but please identify the most appropriate term.) 
+
+(B) 
+
+(C) 
+
+ 
+ 
+ 
+
+Human-computer Interaction 
+Artificial Intelligence  
+Other: __________________________ 
+
+☑       Games 
+ 
+ 
+ 
+
+Installation 
+Interactivity 
+Animation/Visual Effects 
+
+Project Title: 
+Arcane Souls: Rebirth 
+
+Project Objectives 
+Please describe the creative/artistic and technical objective of the proposed project. 
+
+Creative/Artistic Objective: 
+
+The creative and artistic objective of Arcane Souls: Rebirth is to craft an immersive, visually stunning 
+2D anime-style action-adventure game inspired by the challenging and atmospheric essence of Sekiro: 
+Shadows Die Twice. The project aims to blend intricate, hand-drawn anime aesthetics with a dark, 
+mystical narrative set in a fantastical world steeped in lore, rebirth, and arcane mysteries. The goal is to 
+evoke a sense of awe and emotional depth through detailed character designs, vibrant yet haunting 
+environments, and a cinematic storytelling approach. Players will experience a journey of self-discovery 
+and resilience, with fluid animations and expressive art that enhance the intense, skill-based combat 
+inspired by Sekiro. The artistic vision emphasizes a balance between beauty and brutality, creating a 
+unique "二次元" (anime-style) experience that resonates with fans of both anime and challenging 
+action games. 
+
+Technical Objective: 
+
+The technical objective of Arcane Souls: Rebirth is to leverage the capabilities of Unreal Engine 5 to 
+deliver a high-performance, visually polished 2D game with seamless gameplay mechanics. The project 
+will utilize Unreal Engine 5’s advanced rendering features, such as Lumen for dynamic lighting and 
+Nanite for detailed asset creation, adapted for a 2D anime-style framework. The focus will be on 
+developing precise, responsive combat systems that replicate the punishing yet rewarding mechanics of 
+Sekiro, including parrying, dodging, and timing-based attacks. The technical pipeline will prioritize 
+optimization for smooth performance across platforms, integrating tools like Unreal’s Paper 2D for 
+sprite-based animation and Blueprint scripting for rapid prototyping of game mechanics. Additionally, 
+the project will implement robust AI for challenging enemy behaviors and a modular level design 
+system to ensure scalability and ease of content updates. 
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 4 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 5 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+(D) 
+
+Project Description 
+An abstract of 300 - 500 words to illustrate the conceptual framework, an overall description of the project, 
+problem, specification, and the associated citation & reference list. (Important Note: Click here for the note of 
+Academic Honesty)  
+
+In the evolving landscape of video game development, Arcane Souls: Rebirth represents a pioneering 
+endeavor to merge the punishing yet rewarding combat mechanics of FromSoftware's Sekiro: Shadows 
+Die Twice with a vibrant 2D anime aesthetic, creating a unique action-adventure experience. This project, 
+developed using Unreal Engine 5 (UE5), seeks to revitalize the 2D game genre by addressing the gap 
+between high-fidelity 3D titles and stylized, narrative-driven 2D games that emphasize emotional depth 
+and skill mastery. At its core, the game follows a lone warrior's journey through a mystical world of 
+rebirth and arcane secrets, where death is not an end but a catalyst for growth, echoing the themes of 
+resilience and precision found in souls-like games. 
+
+The conceptual framework draws from the souls-like genre's emphasis on deliberate, timing-based 
+gameplay, where every encounter demands strategic parrying, dodging, and counterattacking, rather 
+than relying on brute force or leveling systems. This is infused with anime-inspired artistry, featuring 
+exaggerated expressions, fluid animations, and a color palette that balances ethereal beauty with dark, 
+foreboding atmospheres to heighten immersion and emotional resonance. The narrative framework 
+revolves around cycles of reincarnation, exploring philosophical questions of identity and fate, 
+presented through cinematic cutscenes and environmental storytelling. Artistically, the project 
+prioritizes hand-drawn sprites and particle effects to evoke a "二次元" (2D anime) style, distinguishing 
+it from photorealistic trends in modern gaming. 
+
+A key problem this project addresses is the underrepresentation of challenging 2D games in 
+contemporary markets, where 3D engines like UE5 are predominantly used for realistic simulations, 
+often overlooking 2D's potential for expressive, accessible design. Technical challenges include adapting 
+UE5's advanced features—such as Lumen dynamic lighting and Nanite virtualized geometry—for a 2D 
+framework, which traditionally favors lighter engines. This creates issues in performance optimization, 
+sprite rendering, and integrating complex AI for enemy behaviors that mimic Sekiro's aggressive, 
+pattern-based foes. Additionally, bridging anime visual styles with interactive gameplay requires 
+innovative solutions to maintain fluidity without compromising artistic integrity, a common hurdle in 
+anime-influenced game design. 
+
+Project specifications outline a core loop centered on exploration, combat, and progression. Key 
+features include a posture-based combat system inspired by Sekiro, where breaking an enemy's guard 
+leads to decisive strikes; procedurally assisted level design for replayability; and cross-platform 
+compatibility targeting PC and consoles. UE5's Paper 2D toolkit will handle sprite animations, while 
+Blueprints enable rapid prototyping of mechanics like resurrection nodes that allow players to respawn 
+with retained knowledge. The game will support resolutions up to 4K, with a target frame rate of 60 
+FPS, and incorporate accessibility options such as adjustable difficulty for parry timings. Development 
+milestones include alpha testing for combat balance and beta for narrative integration, ensuring a 
+polished release that honors its inspirations while innovating in the 2D space. 
+
+Overall, Arcane Souls: Rebirth not only pays homage to Sekiro's mastery but pushes boundaries in anime-
+game fusion, offering players a deeply engaging world that challenges both skill and perception. 
+Through meticulous design and technical prowess, this project aims to contribute to the discourse on 
+hybrid game genres, fostering new avenues for creative expression in interactive media. 
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 6 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+(E) 
+
+Deliverables 
+
+Art Assets: A complete set of 2D anime-style art assets, including hand-drawn character sprites, enemy 
+designs, environmental backgrounds, and UI elements. These will incorporate vibrant yet dark 
+aesthetics, with dynamic animations for combat and cutscenes, created using Unreal Engine 5’s Paper 
+2D toolkit and supplemented by particle effects for visual flair. 
+
+Level Designs: A minimum of five distinct levels, each with modular designs for replayability, 
+featuring hand-crafted environments and procedurally assisted elements. Levels will include enemy 
+placements, environmental hazards, and narrative-driven set pieces, optimized for performance across 
+PC and console platforms. 
+
+AI and Enemy Behaviors: A robust AI system for enemies, replicating Sekiro’s challenging, pattern-
+based combat. This includes at least 10 unique enemy types with distinct attack patterns and adaptive 
+behaviors, programmed using Unreal Engine 5’s Behavior Trees. 
+
+(F) 
+
+Forms of Delivery Platform 
+
+PC（Windows） 
+
+(G) 
+
+Equipment and Resource Requirements (please list potential requirements on equipment, software & hardware etc. for 
+internal budgeting purpose. There is no guarantee that such resources will be provided by the University.)  
+Unreal Engine 5 
+
+(H) 
+
+Production Plan & Schedule 
+
+Phase 
+
+Month 
+1 
+2–3 
+4–8  Development 
+9–10  Testing 
+11 
+12 
+
+Optimization 
+Release 
+
+Concept & Pre-production Game concept, design document, and initial art 
+Prototyping 
+
+Focus 
+
+Basic gameplay mechanics and core testing 
+Full-scale development of systems, levels, and features 
+Playtesting, balancing, bug fixing 
+Performance tuning, final bug fixes 
+Final testing, marketing, and release 
+
+(I) 
+
+Area of Research (Examples: Research in UI/UX, ludology, human computer interaction, computer graphics, internet of things, 
+visualization technology, storytelling, game production documentation, installation & interactivity, media art & design, coding, animation 
+design, VFX design and technologies, software and hardware solution, system integration… etc.)  
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 7 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1.  Game Design (Mechanic Design): 
+
+o  Research how to design mechanics to make the game more fun and immersive. This 
+can include balancing character abilities, designing interesting combat systems, and 
+how to make players strategically choose different moves. 
+
+2.  Artificial Intelligence (Enemy AI): 
+
+o 
+
+In terms of enemy AI, explore how to design intelligent and challenging enemies that 
+react to the player's behavior. This could involve using state machines, behavior trees, 
+or more advanced deep learning techniques to improve enemy reactions and action 
+patterns. 
+
+3.  Interaction Design (Motion Interaction): 
+
+o  This area focuses on how the player interacts with the game world and how to design 
+motion responses that make the game experience smoother and more intuitive. This 
+includes motion capture, controller or touch screen interaction, and more. 
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 8 of 9 
+
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+APPROVAL 
+
+Advisor 
+
+Note: The yearlong graduation project must be supervised by SCM or CS faculty or teaching staff. The list of SCM 
+advisor & CS advisor can be found in CANVAS. 
+
+Approved by Advisor: 
+
+Jussi Pekka HOLOPAINEN 
+
+Signature: (Digital Signature is Okay) 
+
+Date: DD Month Year 
+
+FOR OFFICE USE 
+
+* Delete as appropriate 
+Descriptions 
+
+Signed Proposal Received on 
+
+Approved / Rejected* by  
+
+Submitted to ARRO for Course Registration 
+
+Date 
+
+Signature 
+
+BScCM FYP Declaration and Project Proposal Form 20250428 
+
+Page 9 of 9 
+
+31 July 2025 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+
