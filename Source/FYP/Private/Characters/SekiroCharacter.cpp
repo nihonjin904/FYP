@@ -49,6 +49,14 @@ ASekiroCharacter::ASekiroCharacter()
 	WeaponBlockRotation = FRotator(0.0f, 90.0f, 45.0f); // Horizontal block
 	WeaponAttackStartRotation = FRotator(-45.0f, 0.0f, 0.0f); // Windup
 	WeaponAttackEndRotation = FRotator(60.0f, 0.0f, 0.0f); // Swing down
+
+	// Default Weapon Mesh (Cube)
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
+	if (CubeMeshAsset.Succeeded())
+	{
+		WeaponMesh->SetStaticMesh(CubeMeshAsset.Object);
+		WeaponMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 1.0f)); // Make it look like a sword blade
+	}
 }
 
 void ASekiroCharacter::BeginPlay()
@@ -64,17 +72,6 @@ void ASekiroCharacter::BeginPlay()
 			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
-		}
-	}
-
-	// Try to load a basic cube if no mesh is set, just so user sees SOMETHING
-	if (!WeaponMesh->GetStaticMesh())
-	{
-		static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
-		if (CubeMeshAsset.Succeeded())
-		{
-			WeaponMesh->SetStaticMesh(CubeMeshAsset.Object);
-			WeaponMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 1.0f)); // Make it look like a sword blade
 		}
 	}
 }
