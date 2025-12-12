@@ -42,6 +42,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Sekiro|Combat")
 	bool IsBlocking() const { return bIsBlocking; }
 
+	// AI Settings
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|AI")
+	bool bIsAI = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|AI", meta=(ClampMin="0.0", ClampMax="1.0"))
+	float BlockProbability = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|AI", meta=(ClampMin="0.0", ClampMax="1.0"))
+	float DeflectProbability = 0.1f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Combat")
 	float PerfectParryWindow = 0.2f;
 

@@ -30,24 +30,48 @@ void USekiroDeflectComponent::StopBlocking()
 
 EParryResult USekiroDeflectComponent::TryParry(FGameplayTag IncomingAttackType)
 {
-	if (!bIsBlocking)
-	{
-		OnParryResult.Broadcast(EParryResult::Failed);
-		return EParryResult::Failed;
-	}
-
-	float CurrentTime = GetWorld()->GetTimeSeconds();
-	float TimeSinceBlockStart = CurrentTime - BlockStartTime;
-
 	EParryResult Result = EParryResult::Blocked;
 
-	if (TimeSinceBlockStart <= PerfectParryWindow)
+	if (bIsAI)
 	{
-		Result = EParryResult::Perfect;
+		// AI Logic: Roll dice
+		float Roll = FMath::FRand(); // 0.0 to 1.0
+
+		if (Roll < DeflectProbability)
+		{
+			Result = EParryResult::Perfect;
+		}
+		else if (Roll < (DeflectProbability + BlockProbability))
+		{
+			Result = EParryResult::Blocked;
+		}
+		else
+		{
+			Result = EParryResult::Failed;
+			OnParryResult.Broadcast(Result);
+			return Result;
+		}
 	}
 	else
 	{
-		Result = EParryResult::Blocked;
+		// Player Logic: Check input timing
+		if (!bIsBlocking)
+		{
+			OnParryResult.Broadcast(EParryResult::Failed);
+			return EParryResult::Failed;
+		}
+
+		float CurrentTime = GetWorld()->GetTimeSeconds();
+		float TimeSinceBlockStart = CurrentTime - BlockStartTime;
+
+		if (TimeSinceBlockStart <= PerfectParryWindow)
+		{
+			Result = EParryResult::Perfect;
+		}
+		else
+		{
+			Result = EParryResult::Blocked;
+		}
 	}
 
 	// TODO: Check if IncomingAttackType is unblockable (Perilous Attack)

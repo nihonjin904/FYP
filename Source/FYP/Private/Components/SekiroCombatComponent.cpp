@@ -80,7 +80,14 @@ void USekiroCombatComponent::RequestAttack()
 			{
 				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("PERFECT PARRY!"));
 				// No Health Damage, No Posture Damage to Defender
-				// TODO: Add posture damage to attacker (Self)
+				
+				// Apply massive posture damage to Attacker (Self)
+				USekiroPostureComponent* MyPosture = Owner->FindComponentByClass<USekiroPostureComponent>();
+				if (MyPosture)
+				{
+					// Penalty: 3x normal posture damage
+					MyPosture->AddPostureDamage(AttackPostureDamage * 3.0f);
+				}
 			}
 			else if (Result == EParryResult::Blocked)
 			{
@@ -91,16 +98,16 @@ void USekiroCombatComponent::RequestAttack()
 			else // Failed
 			{
 				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Hit!"));
-				// Hit: Health Damage + Full Posture Damage
+				// Hit: Health Damage + Pause Posture Regen (0 damage)
 				if (AttributeComp) AttributeComp->ApplyDamage(DamageToApply);
-				if (PostureComp) PostureComp->AddPostureDamage(AttackPostureDamage);
+				if (PostureComp) PostureComp->AddPostureDamage(0.0f);
 			}
 		}
 		else 
 		{
 			// No deflect component, just take damage
 			if (AttributeComp) AttributeComp->ApplyDamage(DamageToApply);
-			if (PostureComp) PostureComp->AddPostureDamage(AttackPostureDamage);
+			if (PostureComp) PostureComp->AddPostureDamage(0.0f);
 		}
 	}
 	
