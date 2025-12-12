@@ -26,6 +26,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Sekiro|Combat")
 	void RequestAttack();
 
+	// Called when player presses Execution button (F)
+	UFUNCTION(BlueprintCallable, Category="Sekiro|Combat")
+	void RequestExecution();
+
 	// Attempt to perform an execution (Deathblow)
 	UFUNCTION(BlueprintCallable, Category="Sekiro|Combat")
 	bool TryExecuteTarget(AActor* TargetActor);

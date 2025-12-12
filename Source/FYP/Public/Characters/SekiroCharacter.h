@@ -46,6 +46,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	TObjectPtr<UWidgetComponent> OverheadWidget;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UWidgetComponent> DeathblowWidget;
+
+	UFUNCTION()
+	void OnPostureBroken();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -85,6 +91,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro Input")
 	TObjectPtr<UInputAction> AttackAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro Input")
+	TObjectPtr<UInputAction> ExecutionAction;
+
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -92,4 +101,5 @@ protected:
 	void StartBlock();
 	void StopBlock();
 	void Attack();
+	void Execution(const FInputActionValue& Value);
 };

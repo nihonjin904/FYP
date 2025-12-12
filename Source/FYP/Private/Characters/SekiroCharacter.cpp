@@ -50,6 +50,14 @@ ASekiroCharacter::ASekiroCharacter()
 	OverheadWidget->SetDrawAtDesiredSize(true);
 	OverheadWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 100.0f)); // Above head
 
+	// Create Deathblow Widget
+	DeathblowWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DeathblowWidget"));
+	DeathblowWidget->SetupAttachment(RootComponent);
+	DeathblowWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	DeathblowWidget->SetDrawAtDesiredSize(true);
+	DeathblowWidget->SetVisibility(false); // Hidden by default
+	DeathblowWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 50.0f)); // Chest/Head level
+
 	// Create Weapon Mesh
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetupAttachment(GetMesh(), FName("hand_r")); // Attach to right hand socket if available
@@ -84,6 +92,11 @@ void ASekiroCharacter::BeginPlay()
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
 		}
+	}
+
+	if (PostureComponent)
+	{
+		PostureComponent->OnPostureBroken.AddDynamic(this, &ASekiroCharacter::OnPostureBroken);
 	}
 }
 
@@ -147,6 +160,9 @@ void ASekiroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Attacking
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ASekiroCharacter::Attack);
+		
+		// Execution
+		EnhancedInputComponent->BindAction(ExecutionAction, ETriggerEvent::Started, this, &ASekiroCharacter::Execution);
 	}
 	else
 	{
@@ -216,5 +232,30 @@ void ASekiroCharacter::Attack()
 		// Trigger Procedural Animation
 		bIsAttacking = true;
 		AttackTimer = 0.0f;
+	}
+}
+
+void ASekiroCharacter::Execution(const FInputActionValue& Value)
+{
+	if (CombatComponent)
+	{
+		CombatComponent->RequestExecution();
+	}
+}
+
+void ASekiroCharacter::OnPostureBroken()
+{
+	if (DeathblowWidget)
+	{
+		DeathblowWidget->SetVisibility(true);
+	}
+
+	// Add Stunned Tag
+	Tags.Add(FName("State.Stunned"));
+
+	// Optional: Disable movement or AI logic here
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
 	}
 }

@@ -115,6 +115,38 @@ void USekiroCombatComponent::RequestAttack()
 	DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Red, false, 1.0f);
 }
 
+void USekiroCombatComponent::RequestExecution()
+{
+	AActor* Owner = GetOwner();
+	if (!Owner) return;
+
+	// Sphere Trace to find execution target
+	FVector Start = Owner->GetActorLocation();
+	FVector End = Start + (Owner->GetActorForwardVector() * ExecutionRange);
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(Owner);
+
+	bool bHit = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Pawn,
+		FCollisionShape::MakeSphere(50.0f),
+		QueryParams
+	);
+
+	if (bHit && HitResult.GetActor())
+	{
+		if (CanExecuteTarget(HitResult.GetActor()))
+		{
+			TryExecuteTarget(HitResult.GetActor());
+		}
+	}
+}
+
 bool USekiroCombatComponent::TryExecuteTarget(AActor* TargetActor)
 {
 	if (!CanExecuteTarget(TargetActor))
@@ -125,10 +157,18 @@ bool USekiroCombatComponent::TryExecuteTarget(AActor* TargetActor)
 	// Trigger Execution
 	OnExecutionTriggered.Broadcast(TargetActor);
 
-	// Here we would typically:
 	// 1. Play Execution Montage on Self (with Motion Warping to Target)
 	// 2. Play Death Montage on Target
 	// 3. Reset Target Posture or Kill Target
+
+	USekiroAttributeComponent* TargetAttribute = TargetActor->FindComponentByClass<USekiroAttributeComponent>();
+	if (TargetAttribute)
+	{
+		// Critical Hit: 10x Damage (or Instant Kill)
+		TargetAttribute->ApplyDamage(100.0f * 10.0f);
+	}
+
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("DEATHBLOW EXECUTED!"));
 
 	// Example Motion Warping setup (Conceptual):
 	// UMotionWarpingComponent* MotionWarping = GetOwner()->FindComponentByClass<UMotionWarpingComponent>();
