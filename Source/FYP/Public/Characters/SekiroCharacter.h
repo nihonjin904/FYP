@@ -44,6 +44,20 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
 
+	// Procedural Weapon
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|Weapon")
+	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+
+	// Procedural Animation State
+	bool bIsAttacking = false;
+	float AttackTimer = 0.0f;
+	
+	// Base rotation for the weapon (relative to hand)
+	FRotator WeaponIdleRotation;
+	FRotator WeaponBlockRotation;
+	FRotator WeaponAttackStartRotation;
+	FRotator WeaponAttackEndRotation;
+
 	// Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro Input")
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
