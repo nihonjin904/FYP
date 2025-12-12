@@ -3,6 +3,8 @@
 #include "Components/SekiroPostureComponent.h"
 #include "Components/SekiroDeflectComponent.h"
 #include "Components/SekiroCombatComponent.h"
+#include "Components/SekiroAttributeComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -39,6 +41,15 @@ ASekiroCharacter::ASekiroCharacter()
 	PostureComponent = CreateDefaultSubobject<USekiroPostureComponent>(TEXT("PostureComponent"));
 	DeflectComponent = CreateDefaultSubobject<USekiroDeflectComponent>(TEXT("DeflectComponent"));
 	CombatComponent = CreateDefaultSubobject<USekiroCombatComponent>(TEXT("CombatComponent"));
+	AttributeComponent = CreateDefaultSubobject<USekiroAttributeComponent>(TEXT("AttributeComponent"));
+
+	// Create Overhead Widget
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(RootComponent);
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	OverheadWidget->SetDrawAtDesiredSize(true);
+	OverheadWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 100.0f)); // Above head
+
 	// Create Weapon Mesh
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetupAttachment(GetMesh(), FName("hand_r")); // Attach to right hand socket if available

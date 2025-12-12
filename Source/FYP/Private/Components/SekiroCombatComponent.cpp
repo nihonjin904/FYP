@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
 #include "Components/SekiroDeflectComponent.h"
+#include "Components/SekiroPostureComponent.h"
+#include "Components/SekiroAttributeComponent.h"
 
 USekiroCombatComponent::USekiroCombatComponent()
 {
@@ -62,9 +64,12 @@ void USekiroCombatComponent::RequestAttack()
 	{
 		AActor* HitActor = HitResult.GetActor();
 		
-		// Check for Deflect Component
+		// Check for Components
 		USekiroDeflectComponent* DeflectComp = HitActor->FindComponentByClass<USekiroDeflectComponent>();
 		USekiroPostureComponent* PostureComp = HitActor->FindComponentByClass<USekiroPostureComponent>();
+		USekiroAttributeComponent* AttributeComp = HitActor->FindComponentByClass<USekiroAttributeComponent>();
+
+		float DamageToApply = 10.0f; // Base Health Damage
 
 		if (DeflectComp)
 		{
@@ -74,25 +79,28 @@ void USekiroCombatComponent::RequestAttack()
 			if (Result == EParryResult::Perfect)
 			{
 				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, TEXT("PERFECT PARRY!"));
+				// No Health Damage, No Posture Damage to Defender
 				// TODO: Add posture damage to attacker (Self)
 			}
 			else if (Result == EParryResult::Blocked)
 			{
 				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue, TEXT("Blocked!"));
-				// Add reduced posture damage to defender
+				// Blocked: No Health Damage, but Posture Damage
 				if (PostureComp) PostureComp->AddPostureDamage(AttackPostureDamage * 0.5f);
 			}
 			else // Failed
 			{
 				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Hit!"));
-				// Add full posture damage
+				// Hit: Health Damage + Full Posture Damage
+				if (AttributeComp) AttributeComp->ApplyDamage(DamageToApply);
 				if (PostureComp) PostureComp->AddPostureDamage(AttackPostureDamage);
 			}
 		}
-		else if (PostureComp)
+		else 
 		{
 			// No deflect component, just take damage
-			PostureComp->AddPostureDamage(AttackPostureDamage);
+			if (AttributeComp) AttributeComp->ApplyDamage(DamageToApply);
+			if (PostureComp) PostureComp->AddPostureDamage(AttackPostureDamage);
 		}
 	}
 	

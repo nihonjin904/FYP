@@ -8,6 +8,8 @@
 class USekiroPostureComponent;
 class USekiroDeflectComponent;
 class USekiroCombatComponent;
+class USekiroAttributeComponent;
+class UWidgetComponent;
 class UInputMappingContext;
 class UInputAction;
 class UCameraComponent;
@@ -37,6 +39,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|Components")
 	TObjectPtr<USekiroCombatComponent> CombatComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|Components")
+	TObjectPtr<USekiroAttributeComponent> AttributeComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<UWidgetComponent> OverheadWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
