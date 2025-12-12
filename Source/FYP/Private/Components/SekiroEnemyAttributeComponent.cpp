@@ -1,5 +1,6 @@
 #include "Components/SekiroEnemyAttributeComponent.h"
 #include "Components/SekiroCombatComponent.h"
+#include "Characters/SekiroCharacter.h" // Added include
 #include "GameFramework/Actor.h"
 
 USekiroEnemyAttributeComponent::USekiroEnemyAttributeComponent()
@@ -23,7 +24,14 @@ void USekiroEnemyAttributeComponent::TickComponent(float DeltaTime, ELevelTick T
 		TimeSinceLastAttack += DeltaTime;
 		if (TimeSinceLastAttack >= AttackInterval)
 		{
-			CombatComp->RequestAttack();
+			// CombatComp->RequestAttack(); // Old logic (No animation)
+			
+			// New logic: Call Character's Attack function to play animation
+			if (ASekiroCharacter* SekiroChar = Cast<ASekiroCharacter>(GetOwner()))
+			{
+				SekiroChar->Attack();
+			}
+			
 			TimeSinceLastAttack = 0.0f;
 		}
 	}

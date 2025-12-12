@@ -107,6 +107,11 @@ void ASekiroCharacter::BeginPlay()
 void ASekiroCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(10, 0.f, bIsBlocking ? FColor::Green : FColor::Red, FString::Printf(TEXT("bIsBlocking: %s"), bIsBlocking ? TEXT("TRUE") : TEXT("FALSE")));
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,8 +132,16 @@ void ASekiroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASekiroCharacter::Look);
 
 		// Blocking
-		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &ASekiroCharacter::StartBlock);
-		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASekiroCharacter::StopBlock);
+		if (BlockAction)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Binding BlockAction: %s"), *BlockAction->GetName());
+			EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &ASekiroCharacter::StartBlock);
+			EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASekiroCharacter::StopBlock);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("BlockAction is NULL in SetupPlayerInputComponent!"));
+		}
 
 		// Attacking
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ASekiroCharacter::Attack);
@@ -183,8 +196,12 @@ void ASekiroCharacter::Look(const FInputActionValue& Value)
 
 void ASekiroCharacter::StartBlock()
 {
+	UE_LOG(LogTemp, Warning, TEXT("StartBlock Called (Log)!"));
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("StartBlock Called!"));
+
 	if (DeflectComponent)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("DeflectComponent is Valid. Setting bIsBlocking = true"));
 		DeflectComponent->StartBlocking();
 		bIsBlocking = true;
 
@@ -194,10 +211,18 @@ void ASekiroCharacter::StartBlock()
 			PlayAnimMontage(ParryAttemptMontage);
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("DeflectComponent is NULL! bIsBlocking NOT set."));
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("DeflectComponent is NULL!"));
+	}
 }
 
 void ASekiroCharacter::StopBlock()
 {
+	UE_LOG(LogTemp, Warning, TEXT("StopBlock Called (Log)!"));
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("StopBlock Called!"));
+
 	if (DeflectComponent)
 	{
 		DeflectComponent->StopBlocking();

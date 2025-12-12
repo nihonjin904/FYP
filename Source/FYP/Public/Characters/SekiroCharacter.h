@@ -59,6 +59,9 @@ public:
 	UFUNCTION()
 	void OnDeath();
 
+	UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
+	void Attack();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -126,6 +129,6 @@ protected:
 	
 	void StartBlock();
 	void StopBlock();
-	void Attack();
+	// void Attack(); // Moved to public
 	void Execution(const FInputActionValue& Value);
 };
