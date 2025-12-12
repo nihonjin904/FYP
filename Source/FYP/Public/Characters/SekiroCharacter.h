@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Components/SekiroDeflectComponent.h"
 #include "SekiroCharacter.generated.h"
 
 class USekiroPostureComponent;
@@ -52,6 +53,12 @@ public:
 	UFUNCTION()
 	void OnPostureBroken();
 
+	UFUNCTION()
+	void HandleParryResult(EParryResult Result);
+
+	UFUNCTION()
+	void OnDeath();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -62,15 +69,34 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
-	// Procedural Animation State
-	bool bIsAttacking = false;
-	float AttackTimer = 0.0f;
-	
-	// Base rotation for the weapon (relative to hand)
-	FRotator WeaponIdleRotation;
-	FRotator WeaponBlockRotation;
-	FRotator WeaponAttackStartRotation;
-	FRotator WeaponAttackEndRotation;
+	// Animations
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> AttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> ParryAttemptMontage; // Press Block (0.5s)
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> ParrySuccessMontage; // Perfect Parry spark
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> BlockHitMontage; // Blocked a hit
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> HitMontage; // Failed parry (Take damage)
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> ExecutionMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> StunMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> DeathMontage;
+
+	// State
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|State")
+	bool bIsBlocking = false;
 
 	// Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro Input")

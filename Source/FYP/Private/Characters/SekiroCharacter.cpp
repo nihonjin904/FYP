@@ -63,12 +63,6 @@ ASekiroCharacter::ASekiroCharacter()
 	WeaponMesh->SetupAttachment(GetMesh(), FName("hand_r")); // Attach to right hand socket if available
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); // Visual only
 
-	// Initialize Rotations
-	WeaponIdleRotation = FRotator(0.0f, 0.0f, 0.0f);
-	WeaponBlockRotation = FRotator(0.0f, 90.0f, 45.0f); // Horizontal block
-	WeaponAttackStartRotation = FRotator(-45.0f, 0.0f, 0.0f); // Windup
-	WeaponAttackEndRotation = FRotator(60.0f, 0.0f, 0.0f); // Swing down
-
 	// Default Weapon Mesh (Cube)
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
 	if (CubeMeshAsset.Succeeded())
@@ -98,43 +92,21 @@ void ASekiroCharacter::BeginPlay()
 	{
 		PostureComponent->OnPostureBroken.AddDynamic(this, &ASekiroCharacter::OnPostureBroken);
 	}
+
+	if (DeflectComponent)
+	{
+		DeflectComponent->OnParryResult.AddDynamic(this, &ASekiroCharacter::HandleParryResult);
+	}
+
+	if (AttributeComponent)
+	{
+		AttributeComponent->OnDeath.AddDynamic(this, &ASekiroCharacter::OnDeath);
+	}
 }
 
 void ASekiroCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (!WeaponMesh) return;
-
-	FRotator TargetRotation = WeaponIdleRotation;
-
-	// 1. Attack Priority
-	if (bIsAttacking)
-	{
-		AttackTimer += DeltaTime;
-		if (AttackTimer < 0.1f) // Windup
-		{
-			TargetRotation = WeaponAttackStartRotation;
-		}
-		else if (AttackTimer < 0.3f) // Swing
-		{
-			float Alpha = (AttackTimer - 0.1f) / 0.2f;
-			TargetRotation = FMath::Lerp(WeaponAttackStartRotation, WeaponAttackEndRotation, Alpha);
-		}
-		else // Recovery
-		{
-			bIsAttacking = false;
-		}
-	}
-	// 2. Block Priority
-	else if (DeflectComponent && DeflectComponent->IsBlocking())
-	{
-		TargetRotation = WeaponBlockRotation;
-	}
-
-	// Interpolate to target
-	FRotator NewRotation = FMath::RInterpTo(WeaponMesh->GetRelativeRotation(), TargetRotation, DeltaTime, 15.0f);
-	WeaponMesh->SetRelativeRotation(NewRotation);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -172,6 +144,9 @@ void ASekiroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void ASekiroCharacter::Move(const FInputActionValue& Value)
 {
+	// Lock movement if any montage is playing (Attack, Hit, Parry, etc.)
+	if (GetMesh()->GetAnimInstance()->IsAnyMontagePlaying()) return;
+
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -211,7 +186,13 @@ void ASekiroCharacter::StartBlock()
 	if (DeflectComponent)
 	{
 		DeflectComponent->StartBlocking();
-		// Tag is handled by component, visual is handled by Tick
+		bIsBlocking = true;
+
+		// Play Parry Attempt (Fast guard up)
+		if (ParryAttemptMontage)
+		{
+			PlayAnimMontage(ParryAttemptMontage);
+		}
 	}
 }
 
@@ -220,6 +201,7 @@ void ASekiroCharacter::StopBlock()
 	if (DeflectComponent)
 	{
 		DeflectComponent->StopBlocking();
+		bIsBlocking = false;
 	}
 }
 
@@ -229,9 +211,14 @@ void ASekiroCharacter::Attack()
 	{
 		CombatComponent->RequestAttack();
 		
-		// Trigger Procedural Animation
-		bIsAttacking = true;
-		AttackTimer = 0.0f;
+		if (AttackMontage)
+		{
+			PlayAnimMontage(AttackMontage);
+		}
+		else
+		{
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("AttackMontage is NULL! Check BP_SekiroCharacter"));
+		}
 	}
 }
 
@@ -240,6 +227,15 @@ void ASekiroCharacter::Execution(const FInputActionValue& Value)
 	if (CombatComponent)
 	{
 		CombatComponent->RequestExecution();
+
+		if (ExecutionMontage)
+		{
+			PlayAnimMontage(ExecutionMontage);
+		}
+		else
+		{
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("ExecutionMontage is NULL!"));
+		}
 	}
 }
 
@@ -257,5 +253,54 @@ void ASekiroCharacter::OnPostureBroken()
 	if (GetCharacterMovement())
 	{
 		GetCharacterMovement()->StopMovementImmediately();
+	}
+
+	if (StunMontage)
+	{
+		PlayAnimMontage(StunMontage);
+	}
+}
+
+void ASekiroCharacter::HandleParryResult(EParryResult Result)
+{
+	switch (Result)
+	{
+	case EParryResult::Perfect:
+		if (ParrySuccessMontage)
+		{
+			PlayAnimMontage(ParrySuccessMontage);
+		}
+		break;
+	case EParryResult::Blocked:
+		if (BlockHitMontage)
+		{
+			PlayAnimMontage(BlockHitMontage);
+		}
+		break;
+	case EParryResult::Failed:
+		if (HitMontage)
+		{
+			PlayAnimMontage(HitMontage);
+		}
+		break;
+	}
+}
+
+void ASekiroCharacter::OnDeath()
+{
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
+	}
+
+	if (Controller)
+	{
+		DisableInput(Cast<APlayerController>(Controller));
+	}
+
+	if (DeathMontage)
+	{
+		PlayAnimMontage(DeathMontage);
 	}
 }
