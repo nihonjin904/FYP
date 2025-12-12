@@ -69,7 +69,7 @@ void USekiroCombatComponent::RequestAttack()
 		if (DeflectComp)
 		{
 			// Try to Parry
-			EParryResult Result = DeflectComp->TryParry(AttackPostureDamage);
+			EParryResult Result = DeflectComp->TryParry(AttackTag);
 			
 			if (Result == EParryResult::Perfect)
 			{

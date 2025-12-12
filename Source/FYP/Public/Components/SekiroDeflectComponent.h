@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Sekiro|Combat")
 	EParryResult TryParry(FGameplayTag IncomingAttackType);
 
+	UFUNCTION(BlueprintCallable, Category="Sekiro|Combat")
+	bool IsBlocking() const { return bIsBlocking; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Combat")
 	float PerfectParryWindow = 0.2f;
 

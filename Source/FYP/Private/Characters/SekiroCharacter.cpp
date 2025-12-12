@@ -1,37 +1,4 @@
-#include "Characters/SekiroCharacter.h"
-#include "Components/SekiroPostureComponent.h"
-#include "Components/SekiroDeflectComponent.h"
-#include "Components/SekiroCombatComponent.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/Controller.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
-#include "GameplayTagContainer.h"
-
-ASekiroCharacter::ASekiroCharacter()
-{
-	PrimaryActorTick.bCanEverTick = true;
-
-	// Don't rotate when the controller rotates. Let that just affect the camera.
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; 
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); 
-
-	// Create Camera Boom
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; 
-	CameraBoom->bUsePawnControlRotation = true; 
-
-	// Create Follow Camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); 
+ 
 #include "Characters/SekiroCharacter.h"
 #include "Components/SekiroPostureComponent.h"
 #include "Components/SekiroDeflectComponent.h"
@@ -175,7 +142,7 @@ void ASekiroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(LogTemp, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 
