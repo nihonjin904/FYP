@@ -117,10 +117,28 @@ void ASekiroCharacter::Tick(float DeltaTime) {
   Super::Tick(DeltaTime);
 
   if (GEngine) {
-    GEngine->AddOnScreenDebugMessage(
-        10, 0.f, bIsBlocking ? FColor::Green : FColor::Red,
-        FString::Printf(TEXT("bIsBlocking: %s"),
-                        bIsBlocking ? TEXT("TRUE") : TEXT("FALSE")));
+    float CurrentHP = AttributeComponent ? AttributeComponent->CurrentHealth : -1.0f;
+    float MaxHP = AttributeComponent ? AttributeComponent->MaxHealth : -1.0f;
+
+    float CurrentPostureValue =
+        PostureComponent ? PostureComponent->CurrentPosture : -1.0f;
+    float MaxPostureValue =
+        PostureComponent ? PostureComponent->MaxPosture : -1.0f;
+
+    const bool bPostureBroken =
+        PostureComponent && MaxPostureValue > 0.0f &&
+        CurrentPostureValue >= MaxPostureValue;
+
+    const FString DebugLine = FString::Printf(
+        TEXT("PLAYER  HP: %.0f/%.0f  |  Posture: %.0f/%.0f  |  Blocking: %s  |  Broken: %s"),
+        CurrentHP, MaxHP, CurrentPostureValue, MaxPostureValue,
+        bIsBlocking ? TEXT("YES") : TEXT("NO"),
+        bPostureBroken ? TEXT("YES") : TEXT("NO"));
+
+    GEngine->AddOnScreenDebugMessage(10, 0.f,
+                                     bPostureBroken ? FColor::Red
+                                                    : FColor::Green,
+                                     DebugLine);
   }
 }
 
@@ -226,6 +244,9 @@ void ASekiroCharacter::StartBlock() {
     DeflectComponent->StartBlocking();
     bIsBlocking = true;
 
+    // Add combat state tag for systems like Posture regen
+    Tags.AddUnique(FName("State.Combat.HoldingBlock"));
+
     // Play Parry Attempt (Fast guard up)
     if (ParryAttemptMontage) {
       PlayAnimMontage(ParryAttemptMontage);
@@ -249,6 +270,9 @@ void ASekiroCharacter::StopBlock() {
     DeflectComponent->StopBlocking();
     bIsBlocking = false;
   }
+
+  // Remove combat state tag
+  Tags.Remove(FName("State.Combat.HoldingBlock"));
 }
 
 void ASekiroCharacter::Attack() {
