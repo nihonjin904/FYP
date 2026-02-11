@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Components/SceneComponent.h"
 #include "Components/SekiroDeflectComponent.h"
 #include "SekiroCharacter.generated.h"
 
@@ -72,18 +73,36 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
+	/** 擋刀時套用到武器上的額外旋轉（打橫放等）。留空則用 WeaponMesh。 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Weapon")
+	TObjectPtr<USceneComponent> BlockWeaponComponent;
+
+	/** 擋刀時武器相對手嘅旋轉（例如打橫：(0, 0, 90)）。非擋刀時會還原為 0。 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Weapon", meta = (DisplayName = "Block Weapon Rotation"))
+	FRotator BlockWeaponRotationWhenBlocking = FRotator(0.f, 0.f, 90.f);
+
 	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
 	TObjectPtr<UAnimMontage> AttackMontage;
 
+	/** 開始擋刀 (BlockStart_Root) - 按 Block 時播一次 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
-	TObjectPtr<UAnimMontage> ParryAttemptMontage; // Press Block (0.5s)
+	TObjectPtr<UAnimMontage> ParryAttemptMontage;
+
+	/** 持續擋刀 (BlockLoop_Root) - 按住 Block 時循環，需在 Montage 裡把 Section 設為 Loop */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> BlockLoopMontage;
+
+	/** 擋刀被擊中 (BlockHit_Root) - 格擋成功時播一次 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> BlockHitMontage;
+
+	/** 結束擋刀 (BlockEnd_Root) - 放開 Block 時播一次 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
+	TObjectPtr<UAnimMontage> BlockEndMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
 	TObjectPtr<UAnimMontage> ParrySuccessMontage; // Perfect Parry spark
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
-	TObjectPtr<UAnimMontage> BlockHitMontage; // Blocked a hit
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
 	TObjectPtr<UAnimMontage> HitMontage; // Failed parry (Take damage)
@@ -123,12 +142,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro Input")
 	TObjectPtr<UInputAction> ExecutionAction;
 
+	/** BlockStart 播完後若仍按住 Block，接 BlockLoop */
+	UFUNCTION()
+	void OnBlockStartMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	/** BlockHit 播完後若仍按住 Block，接回 BlockLoop */
+	UFUNCTION()
+	void OnBlockHitMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	
+
 	void StartBlock();
 	void StopBlock();
-	// void Attack(); // Moved to public
 	void Execution(const FInputActionValue& Value);
 };

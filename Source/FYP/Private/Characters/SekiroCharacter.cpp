@@ -1,5 +1,6 @@
 
 #include "Characters/SekiroCharacter.h"
+#include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SekiroAttributeComponent.h"
 #include "Components/SekiroCombatComponent.h"
@@ -140,6 +141,11 @@ void ASekiroCharacter::Tick(float DeltaTime) {
                                                     : FColor::Green,
                                      DebugLine);
   }
+
+  USceneComponent* WeaponForBlock = BlockWeaponComponent ? BlockWeaponComponent.Get() : WeaponMesh;
+  if (WeaponForBlock) {
+    WeaponForBlock->SetRelativeRotation(bIsBlocking ? BlockWeaponRotationWhenBlocking : FRotator::ZeroRotator);
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -233,46 +239,43 @@ void ASekiroCharacter::Look(const FInputActionValue &Value) {
 }
 
 void ASekiroCharacter::StartBlock() {
-  UE_LOG(LogTemp, Warning, TEXT("StartBlock Called (Log)!"));
-  if (GEngine)
-    GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green,
-                                     TEXT("StartBlock Called!"));
+  if (!DeflectComponent) return;
 
-  if (DeflectComponent) {
-    UE_LOG(LogTemp, Warning,
-           TEXT("DeflectComponent is Valid. Setting bIsBlocking = true"));
-    DeflectComponent->StartBlocking();
-    bIsBlocking = true;
+  DeflectComponent->StartBlocking();
+  bIsBlocking = true;
+  Tags.AddUnique(FName("State.Combat.HoldingBlock"));
 
-    // Add combat state tag for systems like Posture regen
-    Tags.AddUnique(FName("State.Combat.HoldingBlock"));
-
-    // Play Parry Attempt (Fast guard up)
-    if (ParryAttemptMontage) {
+  // BlockStart：播完後由 OnBlockStartMontageEnded 接 BlockLoop
+  if (ParryAttemptMontage) {
+    UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+    if (Anim) {
+      FOnMontageEnded EndDel;
+      EndDel.BindUObject(this, &ASekiroCharacter::OnBlockStartMontageEnded);
+      Anim->Montage_SetEndDelegate(EndDel, ParryAttemptMontage);
       PlayAnimMontage(ParryAttemptMontage);
+    } else {
+      PlayAnimMontage(ParryAttemptMontage);
+      if (BlockLoopMontage) PlayAnimMontage(BlockLoopMontage);
     }
-  } else {
-    UE_LOG(LogTemp, Error,
-           TEXT("DeflectComponent is NULL! bIsBlocking NOT set."));
-    if (GEngine)
-      GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red,
-                                       TEXT("DeflectComponent is NULL!"));
+  } else if (BlockLoopMontage) {
+    PlayAnimMontage(BlockLoopMontage);
   }
 }
 
 void ASekiroCharacter::StopBlock() {
-  UE_LOG(LogTemp, Warning, TEXT("StopBlock Called (Log)!"));
-  if (GEngine)
-    GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red,
-                                     TEXT("StopBlock Called!"));
+  if (!DeflectComponent) return;
 
-  if (DeflectComponent) {
-    DeflectComponent->StopBlocking();
-    bIsBlocking = false;
-  }
-
-  // Remove combat state tag
+  DeflectComponent->StopBlocking();
+  bIsBlocking = false;
   Tags.Remove(FName("State.Combat.HoldingBlock"));
+
+  UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+  if (Anim && Anim->IsAnyMontagePlaying()) {
+    Anim->Montage_Stop(0.2f);
+  }
+  if (BlockEndMontage) {
+    PlayAnimMontage(BlockEndMontage);
+  }
 }
 
 void ASekiroCharacter::Attack() {
@@ -316,21 +319,33 @@ void ASekiroCharacter::OnPostureBroken() {
 void ASekiroCharacter::HandleParryResult(EParryResult Result) {
   switch (Result) {
   case EParryResult::Perfect:
-    if (ParrySuccessMontage) {
-      PlayAnimMontage(ParrySuccessMontage);
-    }
+    if (ParrySuccessMontage) PlayAnimMontage(ParrySuccessMontage);
     break;
   case EParryResult::Blocked:
     if (BlockHitMontage) {
+      UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+      if (Anim) {
+        FOnMontageEnded EndDel;
+        EndDel.BindUObject(this, &ASekiroCharacter::OnBlockHitMontageEnded);
+        Anim->Montage_SetEndDelegate(EndDel, BlockHitMontage);
+      }
       PlayAnimMontage(BlockHitMontage);
     }
     break;
   case EParryResult::Failed:
-    if (HitMontage) {
-      PlayAnimMontage(HitMontage);
-    }
+    if (HitMontage) PlayAnimMontage(HitMontage);
     break;
   }
+}
+
+void ASekiroCharacter::OnBlockStartMontageEnded(UAnimMontage* Montage, bool bInterrupted) {
+  if (bInterrupted || !bIsBlocking) return;
+  if (BlockLoopMontage) PlayAnimMontage(BlockLoopMontage);
+}
+
+void ASekiroCharacter::OnBlockHitMontageEnded(UAnimMontage* Montage, bool bInterrupted) {
+  if (!bIsBlocking) return;
+  if (BlockLoopMontage) PlayAnimMontage(BlockLoopMontage);
 }
 
 void ASekiroCharacter::OnDeath() {
