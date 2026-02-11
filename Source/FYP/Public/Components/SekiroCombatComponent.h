@@ -31,6 +31,14 @@ public:
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
   void RequestExecution();
 
+  // 執行攻擊判定（由 Animation Notify 調用）
+  UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
+  void PerformAttackHitCheck();
+
+  // 重置攻擊命中標記（由 AnimNotifyState 在攻擊窗口開始時調用）
+  UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
+  void ResetAttackHit();
+
   // Attempt to perform an execution (Deathblow)
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
   bool TryExecuteTarget(AActor *TargetActor);
@@ -111,4 +119,8 @@ protected:
 
   // 獲取角色的動畫實例
   class UAnimInstance *GetOwnerAnimInstance() const;
+
+private:
+  // 標記本次攻擊窗口是否已經命中過（防止同一次攻擊多次傷害）
+  bool bHasHit = false;
 };

@@ -153,83 +153,11 @@ void USekiroCombatComponent::RequestAttack() {
     }
   }
 
-  // ========== 原有的攻擊邏輯（傷害計算）==========
-  // 廣播攻擊事件
-  FGameplayTag AttackTag =
-      FGameplayTag::RequestGameplayTag(FName("Action.Attack.Light"));
-  OnAttackPerformed.Broadcast(AttackTag);
-
-  // Hit Detection
-  FVector Start = Owner->GetActorLocation();
-  FVector End = Start + (Owner->GetActorForwardVector() * AttackRange);
-
-  FHitResult HitResult;
-  FCollisionQueryParams QueryParams;
-  QueryParams.AddIgnoredActor(Owner);
-
-  bool bHit = GetWorld()->SweepSingleByChannel(
-      HitResult, Start, End, FQuat::Identity, ECC_Pawn,
-      FCollisionShape::MakeSphere(50.0f), QueryParams);
-
-  if (bHit && HitResult.GetActor()) {
-    AActor *HitActor = HitResult.GetActor();
-
-    // Check for Components
-    USekiroDeflectComponent *DeflectComp =
-        HitActor->FindComponentByClass<USekiroDeflectComponent>();
-    USekiroPostureComponent *PostureComp =
-        HitActor->FindComponentByClass<USekiroPostureComponent>();
-    USekiroAttributeComponent *AttributeComp =
-        HitActor->FindComponentByClass<USekiroAttributeComponent>();
-
-    float DamageToApply = 10.0f; // Base Health Damage
-
-    if (DeflectComp) {
-      // Try to Parry
-      EParryResult Result = DeflectComp->TryParry(AttackTag);
-
-      if (Result == EParryResult::Perfect) {
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange,
-                                           TEXT("PERFECT PARRY!"));
-        // No Health Damage, No Posture Damage to Defender
-
-        // Apply massive posture damage to Attacker (Self)
-        USekiroPostureComponent *MyPosture =
-            Owner->FindComponentByClass<USekiroPostureComponent>();
-        if (MyPosture) {
-          // Penalty: 3x normal posture damage
-          MyPosture->AddPostureDamage(AttackPostureDamage * 3.0f);
-        }
-      } else if (Result == EParryResult::Blocked) {
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue,
-                                           TEXT("Blocked!"));
-        // Blocked: No Health Damage, but Posture Damage
-        if (PostureComp)
-          PostureComp->AddPostureDamage(AttackPostureDamage * 0.5f);
-      } else // Failed
-      {
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Hit!"));
-        // Hit: Health Damage + Pause Posture Regen (0 damage)
-        if (AttributeComp)
-          AttributeComp->ApplyDamage(DamageToApply);
-        if (PostureComp)
-          PostureComp->AddPostureDamage(0.0f);
-      }
-    } else {
-      // No deflect component, just take damage
-      if (AttributeComp)
-        AttributeComp->ApplyDamage(DamageToApply);
-      if (PostureComp)
-        PostureComp->AddPostureDamage(0.0f);
-    }
-  }
-
-  // Draw Debug Line
-  DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Red, false, 1.0f);
+  // === 攻擊判定邏輯已移除 ===
+  // 攻擊判定現在由 AnimNotifyState_AttackWindow 在動畫中觸發
+  // 這確保一次攻擊動畫只會造成一次傷害，無論玩家按多少次攻擊鍵
 }
+
 
 void USekiroCombatComponent::RequestExecution() {
   AActor *Owner = GetOwner();
@@ -438,4 +366,103 @@ UAnimInstance *USekiroCombatComponent::GetOwnerAnimInstance() const {
     return nullptr;
 
   return Mesh->GetAnimInstance();
+}
+
+// ========== 攻擊判定系統 ==========
+
+void USekiroCombatComponent::ResetAttackHit() {
+  bHasHit = false;
+  
+  if (GEngine)
+    GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Cyan,
+                                     TEXT("Attack Window Started - Reset Hit Flag"));
+}
+
+void USekiroCombatComponent::PerformAttackHitCheck() {
+  // 如果本次攻擊窗口已經命中過，不再執行判定
+  if (bHasHit)
+    return;
+
+  AActor *Owner = GetOwner();
+  if (!Owner)
+    return;
+
+  // 廣播攻擊事件
+  FGameplayTag AttackTag =
+      FGameplayTag::RequestGameplayTag(FName("Action.Attack.Light"));
+  OnAttackPerformed.Broadcast(AttackTag);
+
+  // Hit Detection
+  FVector Start = Owner->GetActorLocation();
+  FVector End = Start + (Owner->GetActorForwardVector() * AttackRange);
+
+  FHitResult HitResult;
+  FCollisionQueryParams QueryParams;
+  QueryParams.AddIgnoredActor(Owner);
+
+  bool bHit = GetWorld()->SweepSingleByChannel(
+      HitResult, Start, End, FQuat::Identity, ECC_Pawn,
+      FCollisionShape::MakeSphere(50.0f), QueryParams);
+
+  if (bHit && HitResult.GetActor()) {
+    AActor *HitActor = HitResult.GetActor();
+
+    // 標記本次攻擊窗口已經命中，防止多次傷害
+    bHasHit = true;
+
+    // Check for Components
+    USekiroDeflectComponent *DeflectComp =
+        HitActor->FindComponentByClass<USekiroDeflectComponent>();
+    USekiroPostureComponent *PostureComp =
+        HitActor->FindComponentByClass<USekiroPostureComponent>();
+    USekiroAttributeComponent *AttributeComp =
+        HitActor->FindComponentByClass<USekiroAttributeComponent>();
+
+    float DamageToApply = 10.0f; // Base Health Damage
+
+    if (DeflectComp) {
+      // Try to Parry
+      EParryResult Result = DeflectComp->TryParry(AttackTag);
+
+      if (Result == EParryResult::Perfect) {
+        if (GEngine)
+          GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange,
+                                           TEXT("PERFECT PARRY!"));
+        // No Health Damage, No Posture Damage to Defender
+
+        // Apply massive posture damage to Attacker (Self)
+        USekiroPostureComponent *MyPosture =
+            Owner->FindComponentByClass<USekiroPostureComponent>();
+        if (MyPosture) {
+          // Penalty: 3x normal posture damage
+          MyPosture->AddPostureDamage(AttackPostureDamage * 3.0f);
+        }
+      } else if (Result == EParryResult::Blocked) {
+        if (GEngine)
+          GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue,
+                                           TEXT("Blocked!"));
+        // Blocked: No Health Damage, but Posture Damage
+        if (PostureComp)
+          PostureComp->AddPostureDamage(AttackPostureDamage * 0.5f);
+      } else // Failed
+      {
+        if (GEngine)
+          GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Hit!"));
+        // Hit: Health Damage + Pause Posture Regen (0 damage)
+        if (AttributeComp)
+          AttributeComp->ApplyDamage(DamageToApply);
+        if (PostureComp)
+          PostureComp->AddPostureDamage(0.0f);
+      }
+    } else {
+      // No deflect component, just take damage
+      if (AttributeComp)
+        AttributeComp->ApplyDamage(DamageToApply);
+      if (PostureComp)
+        PostureComp->AddPostureDamage(0.0f);
+    }
+  }
+
+  // Draw Debug Line
+  DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Red, false, 1.0f);
 }
