@@ -12,6 +12,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackPerformed, FGameplayTag,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnExecutionTriggered, AActor *,
                                             Target);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackStarted);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnded);
+
 UCLASS(ClassGroup = (Sekiro), meta = (BlueprintSpawnableComponent))
 class FYP_API USekiroCombatComponent : public UActorComponent {
   GENERATED_BODY()
@@ -27,9 +30,9 @@ public:
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
   void RequestAttack();
 
-  // Called when player presses Execution button (F)
+  /** 嘗試處決（有鎖定或前方可處決目標則執行）。返回 true 表示已處決。 */
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
-  void RequestExecution();
+  bool RequestExecution();
 
   // 執行攻擊判定（由 Animation Notify 調用）
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
@@ -64,6 +67,14 @@ public:
 
   UPROPERTY(BlueprintAssignable, Category = "Sekiro|Combat")
   FOnExecutionTriggered OnExecutionTriggered;
+
+  /** 開始攻擊 Combo 時（刀光軌跡可在 Blueprint 聽呢個開） */
+  UPROPERTY(BlueprintAssignable, Category = "Sekiro|Combat")
+  FOnAttackStarted OnAttackStarted;
+
+  /** 攻擊 Combo 完全結束時（刀光軌跡可在 Blueprint 聽呢個關） */
+  UPROPERTY(BlueprintAssignable, Category = "Sekiro|Combat")
+  FOnAttackEnded OnAttackEnded;
 
   // ========== COMBO 系統 ==========
 

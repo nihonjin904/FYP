@@ -2,7 +2,9 @@
 #include "Components/SekiroCombatComponent.h"
 #include "Characters/SekiroCharacter.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
 
 USekiroEnemyAttributeComponent::USekiroEnemyAttributeComponent()
 {
@@ -32,6 +34,29 @@ void USekiroEnemyAttributeComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 void USekiroEnemyAttributeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	// 敵人面向玩家（打主角而唔係打一個方向）
+	if (bFacePlayer)
+	{
+		APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+		AActor* OwnerActor = GetOwner();
+		if (PlayerPawn && OwnerActor && PlayerPawn != OwnerActor)
+		{
+			float DistSq = FVector::DistSquared(OwnerActor->GetActorLocation(), PlayerPawn->GetActorLocation());
+			if (DistSq <= FacePlayerRange * FacePlayerRange)
+			{
+				FVector ToPlayer = (PlayerPawn->GetActorLocation() - OwnerActor->GetActorLocation()).GetSafeNormal2D();
+				if (ToPlayer.IsNormalized())
+				{
+					FRotator DesiredYaw = ToPlayer.Rotation();
+					FRotator Current = OwnerActor->GetActorRotation();
+					float Speed = FacePlayerSpeed * DeltaTime;
+					FRotator NewRot = FMath::RInterpTo(Current, DesiredYaw, DeltaTime, FacePlayerSpeed);
+					OwnerActor->SetActorRotation(NewRot);
+				}
+			}
+		}
+	}
 
 	if (bAutoAttack && CombatComp && !ComboTimerHandle.IsValid())
 	{

@@ -1,5 +1,6 @@
 #include "Components/SekiroCombatComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Characters/SekiroCharacter.h"
 #include "Components/SekiroAttributeComponent.h"
 #include "Components/SekiroDeflectComponent.h"
 #include "Components/SekiroPostureComponent.h"
@@ -49,6 +50,7 @@ void USekiroCombatComponent::RequestAttack() {
                               ComboMontages.Num()));
 
         LastComboActionTime = GetWorld()->GetTimeSeconds();
+        OnAttackStarted.Broadcast();
         float Duration = AnimInstance->Montage_Play(ComboMontages[ComboIndex]);
 
         // 動態計算窗口開啟時間 (動畫的 50%)
@@ -159,10 +161,17 @@ void USekiroCombatComponent::RequestAttack() {
 }
 
 
-void USekiroCombatComponent::RequestExecution() {
+bool USekiroCombatComponent::RequestExecution() {
   AActor *Owner = GetOwner();
   if (!Owner)
-    return;
+    return false;
+
+  // 若已鎖定敵人且該敵人可處決，直接對鎖定目標處決（架勢條滿即可）
+  ASekiroCharacter* SekiroOwner = Cast<ASekiroCharacter>(Owner);
+  if (SekiroOwner && SekiroOwner->LockedTarget && CanExecuteTarget(SekiroOwner->LockedTarget)) {
+    if (TryExecuteTarget(SekiroOwner->LockedTarget))
+      return true;
+  }
 
   // Sphere Trace to find execution target
   FVector Start = Owner->GetActorLocation();
@@ -176,11 +185,10 @@ void USekiroCombatComponent::RequestExecution() {
       HitResult, Start, End, FQuat::Identity, ECC_Pawn,
       FCollisionShape::MakeSphere(50.0f), QueryParams);
 
-  if (bHit && HitResult.GetActor()) {
-    if (CanExecuteTarget(HitResult.GetActor())) {
-      TryExecuteTarget(HitResult.GetActor());
-    }
-  }
+  if (bHit && HitResult.GetActor() && CanExecuteTarget(HitResult.GetActor()))
+    return TryExecuteTarget(HitResult.GetActor());
+
+  return false;
 }
 
 bool USekiroCombatComponent::TryExecuteTarget(AActor *TargetActor) {
@@ -256,6 +264,8 @@ USekiroCombatComponent::GetTargetPosture(AActor *Target) const {
 // ========== COMBO 系統函數實現 ==========
 
 void USekiroCombatComponent::ResetCombo() {
+  if (bIsAttacking)
+    OnAttackEnded.Broadcast();
   ComboIndex = 0;
   bCanCombo = false;
   bIsAttacking = false;
@@ -349,6 +359,7 @@ void USekiroCombatComponent::OnMontageEnded(UAnimMontage *Montage,
     // 標記攻擊結束
     bIsAttacking = false;
     bCanCombo = false;
+    OnAttackEnded.Broadcast();
   }
 }
 

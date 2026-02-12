@@ -14,7 +14,8 @@ public class FYP : ModuleRules
 			"EnhancedInput", 
 			"GameplayTags",
 			"MotionWarping", // Added for Execution requirement
-			"UMG"
+			"UMG",
+			"Niagara"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

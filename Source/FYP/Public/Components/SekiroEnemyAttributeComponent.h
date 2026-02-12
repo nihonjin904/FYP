@@ -37,6 +37,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy", meta=(ClampMin="0.1"))
 	float ComboAttackInterval = 0.45f;
 
+	/** 是否令敵人一直面向玩家（打主角而唔係打空氣） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy")
+	bool bFacePlayer = true;
+
+	/** 面向玩家嘅有效距離（超過就唔轉向） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy", meta=(ClampMin="0"))
+	float FacePlayerRange = 1500.f;
+
+	/** 轉向玩家嘅速度（愈大愈快） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy", meta=(ClampMin="0.1"))
+	float FacePlayerSpeed = 8.f;
+
 protected:
 	float TimeSinceLastAttack = 0.0f;
 
