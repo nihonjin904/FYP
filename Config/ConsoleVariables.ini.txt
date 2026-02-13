@@ -1,0 +1,3 @@
+[Startup]
+r.VSyncEditor=1
+t.MaxFPS=30

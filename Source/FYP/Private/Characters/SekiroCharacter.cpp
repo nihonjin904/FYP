@@ -2,6 +2,7 @@
 #include "Characters/SekiroCharacter.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Components/SekiroAttributeComponent.h"
 #include "Components/SekiroCombatComponent.h"
 #include "Components/SekiroDeflectComponent.h"
@@ -14,18 +15,15 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/WorldSettings.h"
 #include "GameplayTagContainer.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
-#include "Engine/World.h"
-#include "GameFramework/WorldSettings.h"
-#include "NiagaraFunctionLibrary.h"
-#include "NiagaraSystem.h"
-#include "Components/PrimitiveComponent.h"
-
 
 ASekiroCharacter::ASekiroCharacter() {
   PrimaryActorTick.bCanEverTick = true;
@@ -79,12 +77,15 @@ ASekiroCharacter::ASekiroCharacter() {
   DeathblowWidget->SetRelativeLocation(
       FVector(0.0f, 0.0f, 50.0f)); // Chest/Head level
 
-  // BlockWeaponPivot：手 (hand_r) → Pivot → WeaponMesh，擋刀時只轉 Pivot 就唔會被動畫蓋過
-  BlockWeaponPivot = CreateDefaultSubobject<USceneComponent>(TEXT("BlockWeaponPivot"));
+  // BlockWeaponPivot：手 (hand_r) → Pivot → WeaponMesh，擋刀時只轉 Pivot
+  // 就唔會被動畫蓋過
+  BlockWeaponPivot =
+      CreateDefaultSubobject<USceneComponent>(TEXT("BlockWeaponPivot"));
   BlockWeaponPivot->SetupAttachment(GetMesh(), FName("hand_r"));
 
   WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
-  WeaponMesh->SetupAttachment(BlockWeaponPivot); // 掛喺 Pivot 下面，唔直接掛 hand_r
+  WeaponMesh->SetupAttachment(
+      BlockWeaponPivot); // 掛喺 Pivot 下面，唔直接掛 hand_r
   WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
   static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(
@@ -130,9 +131,12 @@ void ASekiroCharacter::BeginPlay() {
   }
 
   if (CombatComponent) {
-    CombatComponent->OnExecutionTriggered.AddDynamic(this, &ASekiroCharacter::OnExecutionTriggered);
-    CombatComponent->OnAttackStarted.AddDynamic(this, &ASekiroCharacter::OnAttackStartedForTrail);
-    CombatComponent->OnAttackEnded.AddDynamic(this, &ASekiroCharacter::OnAttackEndedForTrail);
+    CombatComponent->OnExecutionTriggered.AddDynamic(
+        this, &ASekiroCharacter::OnExecutionTriggered);
+    CombatComponent->OnAttackStarted.AddDynamic(
+        this, &ASekiroCharacter::OnAttackStartedForTrail);
+    CombatComponent->OnAttackEnded.AddDynamic(
+        this, &ASekiroCharacter::OnAttackEndedForTrail);
   }
 }
 
@@ -140,7 +144,8 @@ void ASekiroCharacter::Tick(float DeltaTime) {
   Super::Tick(DeltaTime);
 
   if (GEngine) {
-    float CurrentHP = AttributeComponent ? AttributeComponent->CurrentHealth : -1.0f;
+    float CurrentHP =
+        AttributeComponent ? AttributeComponent->CurrentHealth : -1.0f;
     float MaxHP = AttributeComponent ? AttributeComponent->MaxHealth : -1.0f;
 
     float CurrentPostureValue =
@@ -148,36 +153,39 @@ void ASekiroCharacter::Tick(float DeltaTime) {
     float MaxPostureValue =
         PostureComponent ? PostureComponent->MaxPosture : -1.0f;
 
-    const bool bPostureBroken =
-        PostureComponent && MaxPostureValue > 0.0f &&
-        CurrentPostureValue >= MaxPostureValue;
+    const bool bPostureBroken = PostureComponent && MaxPostureValue > 0.0f &&
+                                CurrentPostureValue >= MaxPostureValue;
 
-    const FString DebugLine = FString::Printf(
-        TEXT("PLAYER  HP: %.0f/%.0f  |  Posture: %.0f/%.0f  |  Blocking: %s  |  Broken: %s"),
-        CurrentHP, MaxHP, CurrentPostureValue, MaxPostureValue,
-        bIsBlocking ? TEXT("YES") : TEXT("NO"),
-        bPostureBroken ? TEXT("YES") : TEXT("NO"));
+    const FString DebugLine =
+        FString::Printf(TEXT("PLAYER  HP: %.0f/%.0f  |  Posture: %.0f/%.0f  |  "
+                             "Blocking: %s  |  Broken: %s"),
+                        CurrentHP, MaxHP, CurrentPostureValue, MaxPostureValue,
+                        bIsBlocking ? TEXT("YES") : TEXT("NO"),
+                        bPostureBroken ? TEXT("YES") : TEXT("NO"));
 
-    GEngine->AddOnScreenDebugMessage(10, 0.f,
-                                     bPostureBroken ? FColor::Red
-                                                    : FColor::Green,
-                                     DebugLine);
+    GEngine->AddOnScreenDebugMessage(
+        10, 0.f, bPostureBroken ? FColor::Red : FColor::Green, DebugLine);
   }
 
   // 擋刀時轉「Pivot」而唔係直接轉 WeaponMesh，刀先會打橫且唔會被動畫蓋過
-  USceneComponent* RotateTarget = BlockWeaponComponent ? BlockWeaponComponent.Get() : BlockWeaponPivot.Get();
+  USceneComponent *RotateTarget = BlockWeaponComponent
+                                      ? BlockWeaponComponent.Get()
+                                      : BlockWeaponPivot.Get();
   if (RotateTarget) {
-    // 就算 bIsBlocking 因 Enhanced Input Trigger 抖動，都用 Montage 狀態保持打橫
-    UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+    // 就算 bIsBlocking 因 Enhanced Input Trigger 抖動，都用 Montage
+    // 狀態保持打橫
+    UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
     const bool bInBlockMontage =
-      (Anim && (
-        (ParryAttemptMontage && Anim->Montage_IsPlaying(ParryAttemptMontage)) ||
-        (BlockLoopMontage && Anim->Montage_IsPlaying(BlockLoopMontage)) ||
-        (BlockHitMontage && Anim->Montage_IsPlaying(BlockHitMontage)) ||
-        (BlockEndMontage && Anim->Montage_IsPlaying(BlockEndMontage))
-      ));
+        (Anim &&
+         ((ParryAttemptMontage &&
+           Anim->Montage_IsPlaying(ParryAttemptMontage)) ||
+          (BlockLoopMontage && Anim->Montage_IsPlaying(BlockLoopMontage)) ||
+          (BlockHitMontage && Anim->Montage_IsPlaying(BlockHitMontage)) ||
+          (BlockEndMontage && Anim->Montage_IsPlaying(BlockEndMontage))));
     const bool bApplyBlockRot = bIsBlocking || bInBlockMontage;
-    RotateTarget->SetRelativeRotation(bApplyBlockRot ? BlockWeaponRotationWhenBlocking : FRotator::ZeroRotator);
+    RotateTarget->SetRelativeRotation(bApplyBlockRot
+                                          ? BlockWeaponRotationWhenBlocking
+                                          : FRotator::ZeroRotator);
   }
 
   // 鎖定時：鏡頭／面向跟住目標；目標死或太遠則自動解除
@@ -186,14 +194,16 @@ void ASekiroCharacter::Tick(float DeltaTime) {
       LockedTarget = nullptr;
       bIsLockedOn = false;
     } else {
-      const float DistSq = FVector::DistSquared(GetActorLocation(), LockedTarget->GetActorLocation());
+      const float DistSq = FVector::DistSquared(
+          GetActorLocation(), LockedTarget->GetActorLocation());
       if (DistSq > LockOnRange * LockOnRange) {
         LockedTarget = nullptr;
         bIsLockedOn = false;
       } else {
-        APlayerController* PC = Cast<APlayerController>(Controller);
+        APlayerController *PC = Cast<APlayerController>(Controller);
         if (PC) {
-          // 鎖定時角色一定面向目標：用 Controller Yaw 控制角色方向（唔跟移動方向）
+          // 鎖定時角色一定面向目標：用 Controller Yaw
+          // 控制角色方向（唔跟移動方向）
           bUseControllerRotationYaw = true;
           if (GetCharacterMovement())
             GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -204,10 +214,12 @@ void ASekiroCharacter::Tick(float DeltaTime) {
           PC->GetPlayerViewPoint(ViewLoc, ViewRot);
 
           // 抬高瞄準點，避免鎖地面；同時抬高 Camera Boom 位置
-          const FVector TargetLoc = LockedTarget->GetActorLocation() + FVector(0.f, 0.f, LockOnTargetZOffset);
+          const FVector TargetLoc = LockedTarget->GetActorLocation() +
+                                    FVector(0.f, 0.f, LockOnTargetZOffset);
           if (CameraBoom) {
             FVector NewOffset = DefaultCameraBoomSocketOffset;
-            NewOffset.Z = DefaultCameraBoomSocketOffset.Z + LockOnCameraSocketOffsetZ;
+            NewOffset.Z =
+                DefaultCameraBoomSocketOffset.Z + LockOnCameraSocketOffsetZ;
             CameraBoom->SocketOffset = NewOffset;
           }
           const FVector ToTarget = TargetLoc - ViewLoc;
@@ -217,7 +229,8 @@ void ASekiroCharacter::Tick(float DeltaTime) {
             if (bLockOnUseFixedPitch) {
               Desired.Pitch = LockOnFixedPitch;
             } else {
-              Desired.Pitch = FMath::Clamp(Desired.Pitch, LockOnPitchMin, LockOnPitchMax);
+              Desired.Pitch =
+                  FMath::Clamp(Desired.Pitch, LockOnPitchMin, LockOnPitchMax);
             }
 
             FRotator Current = PC->GetControlRotation();
@@ -225,10 +238,12 @@ void ASekiroCharacter::Tick(float DeltaTime) {
             if (bLockOnUseFixedPitch) {
               Current.Pitch = LockOnFixedPitch;
             } else {
-              Current.Pitch = FMath::Clamp(Current.Pitch, LockOnPitchMin, LockOnPitchMax);
+              Current.Pitch =
+                  FMath::Clamp(Current.Pitch, LockOnPitchMin, LockOnPitchMax);
             }
 
-            FRotator NewRot = FMath::RInterpTo(Current, Desired, DeltaTime, LockOnRotationSpeed);
+            FRotator NewRot = FMath::RInterpTo(Current, Desired, DeltaTime,
+                                               LockOnRotationSpeed);
             if (bLockOnUseFixedPitch) {
               NewRot.Pitch = LockOnFixedPitch;
             }
@@ -237,8 +252,7 @@ void ASekiroCharacter::Tick(float DeltaTime) {
         }
       }
     }
-  }
-  else {
+  } else {
     // 無鎖定時還原：角色跟移動方向轉向
     bUseControllerRotationYaw = false;
     if (GetCharacterMovement())
@@ -250,33 +264,41 @@ void ASekiroCharacter::Tick(float DeltaTime) {
 
   // Outline（描邊）：鎖定目標開 Custom Depth，解除時關
   if (PreviousLockedTarget && PreviousLockedTarget != LockedTarget) {
-    TArray<UPrimitiveComponent*> Comps;
+    TArray<UPrimitiveComponent *> Comps;
     PreviousLockedTarget->GetComponents(Comps);
-    for (UPrimitiveComponent* C : Comps) {
-      if (C) { C->SetRenderCustomDepth(false); }
+    for (UPrimitiveComponent *C : Comps) {
+      if (C) {
+        C->SetRenderCustomDepth(false);
+      }
     }
     PreviousLockedTarget = nullptr;
   }
   if (LockedTarget) {
-    TArray<UPrimitiveComponent*> Comps;
+    TArray<UPrimitiveComponent *> Comps;
     LockedTarget->GetComponents(Comps);
-    for (UPrimitiveComponent* C : Comps) {
-      if (C) { C->SetRenderCustomDepth(true); C->SetCustomDepthStencilValue(1); }
+    for (UPrimitiveComponent *C : Comps) {
+      if (C) {
+        C->SetRenderCustomDepth(true);
+        C->SetCustomDepthStencilValue(1);
+      }
     }
     PreviousLockedTarget = LockedTarget;
   }
 
   // 敵人（非玩家）自動面向玩家
-  APlayerController* PC = Cast<APlayerController>(GetController());
+  APlayerController *PC = Cast<APlayerController>(GetController());
   if (!PC && bFacePlayerAsAI) {
-    APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+    APawn *PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
     if (PlayerPawn && PlayerPawn != this) {
-      const float DistSq = FVector::DistSquared(GetActorLocation(), PlayerPawn->GetActorLocation());
+      const float DistSq = FVector::DistSquared(GetActorLocation(),
+                                                PlayerPawn->GetActorLocation());
       if (DistSq <= 3000.f * 3000.f) {
-        FVector ToPlayer = (PlayerPawn->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+        FVector ToPlayer = (PlayerPawn->GetActorLocation() - GetActorLocation())
+                               .GetSafeNormal2D();
         if (!ToPlayer.IsNearlyZero()) {
           FRotator Desired = ToPlayer.Rotation();
-          SetActorRotation(FMath::RInterpTo(GetActorRotation(), Desired, DeltaTime, 12.f));
+          SetActorRotation(
+              FMath::RInterpTo(GetActorRotation(), Desired, DeltaTime, 12.f));
         }
       }
     }
@@ -311,7 +333,8 @@ void ASekiroCharacter::SetupPlayerInputComponent(
              *BlockAction->GetName());
       EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started,
                                          this, &ASekiroCharacter::StartBlock);
-      // 重要：按住期間每幀都保持 Blocking（避免 Completed 抖動令 bIsBlocking 掉落）
+      // 重要：按住期間每幀都保持 Blocking（避免 Completed 抖動令 bIsBlocking
+      // 掉落）
       EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered,
                                          this, &ASekiroCharacter::StartBlock);
       EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed,
@@ -332,7 +355,8 @@ void ASekiroCharacter::SetupPlayerInputComponent(
     // Lock-on
     if (LockOnAction) {
       EnhancedInputComponent->BindAction(LockOnAction, ETriggerEvent::Started,
-                                         this, &ASekiroCharacter::LockOnPressed);
+                                         this,
+                                         &ASekiroCharacter::LockOnPressed);
     }
   } else {
     UE_LOG(
@@ -388,16 +412,18 @@ void ASekiroCharacter::Look(const FInputActionValue &Value) {
 }
 
 void ASekiroCharacter::StartBlock() {
-  if (!DeflectComponent) return;
+  if (!DeflectComponent)
+    return;
 
-  LastBlockInputTimeSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : LastBlockInputTimeSeconds;
+  LastBlockInputTimeSeconds =
+      GetWorld() ? GetWorld()->GetTimeSeconds() : LastBlockInputTimeSeconds;
   DeflectComponent->StartBlocking();
   bIsBlocking = true;
   Tags.AddUnique(FName("State.Combat.HoldingBlock"));
 
   // BlockStart：播完後由 OnBlockStartMontageEnded 接 BlockLoop
   if (ParryAttemptMontage) {
-    UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+    UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
     if (Anim) {
       FOnMontageEnded EndDel;
       EndDel.BindUObject(this, &ASekiroCharacter::OnBlockStartMontageEnded);
@@ -405,7 +431,8 @@ void ASekiroCharacter::StartBlock() {
       PlayAnimMontage(ParryAttemptMontage);
     } else {
       PlayAnimMontage(ParryAttemptMontage);
-      if (BlockLoopMontage) PlayAnimMontage(BlockLoopMontage);
+      if (BlockLoopMontage)
+        PlayAnimMontage(BlockLoopMontage);
     }
   } else if (BlockLoopMontage) {
     PlayAnimMontage(BlockLoopMontage);
@@ -413,7 +440,8 @@ void ASekiroCharacter::StartBlock() {
 }
 
 void ASekiroCharacter::StopBlock() {
-  if (!DeflectComponent) return;
+  if (!DeflectComponent)
+    return;
 
   // 保護：避免 Enhanced Input trigger 導致一按即 Completed 令擋格立即取消
   if (GetWorld()) {
@@ -427,12 +455,16 @@ void ASekiroCharacter::StopBlock() {
   bIsBlocking = false;
   Tags.Remove(FName("State.Combat.HoldingBlock"));
 
-  // 只停止「擋格相關」Montage，唔好一口氣 Stop 所有（避免攻擊/受擊 Montage 異常）
-  UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+  // 只停止「擋格相關」Montage，唔好一口氣 Stop 所有（避免攻擊/受擊 Montage
+  // 異常）
+  UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
   if (Anim) {
-    if (ParryAttemptMontage) Anim->Montage_Stop(0.2f, ParryAttemptMontage);
-    if (BlockLoopMontage) Anim->Montage_Stop(0.2f, BlockLoopMontage);
-    if (BlockHitMontage) Anim->Montage_Stop(0.2f, BlockHitMontage);
+    if (ParryAttemptMontage)
+      Anim->Montage_Stop(0.2f, ParryAttemptMontage);
+    if (BlockLoopMontage)
+      Anim->Montage_Stop(0.2f, BlockLoopMontage);
+    if (BlockHitMontage)
+      Anim->Montage_Stop(0.2f, BlockHitMontage);
   }
   if (BlockEndMontage) {
     PlayAnimMontage(BlockEndMontage);
@@ -440,20 +472,20 @@ void ASekiroCharacter::StopBlock() {
 }
 
 void ASekiroCharacter::Attack() {
-  if (!CombatComponent) return;
+  if (!CombatComponent)
+    return;
   // 左鍵：若可處決（架勢條滿）則直接處決，否則攻擊
   if (CombatComponent->RequestExecution())
     return;
   CombatComponent->RequestAttack();
 }
 
-void ASekiroCharacter::LockOnPressed() {
-  ToggleLockOn();
-}
+void ASekiroCharacter::LockOnPressed() { ToggleLockOn(); }
 
 void ASekiroCharacter::ToggleLockOn() {
-  UWorld* World = GetWorld();
-  if (!World) return;
+  UWorld *World = GetWorld();
+  if (!World)
+    return;
 
   if (bIsLockedOn) {
     LockedTarget = nullptr;
@@ -461,22 +493,26 @@ void ASekiroCharacter::ToggleLockOn() {
     return;
   }
 
-  TArray<AActor*> Candidates;
+  TArray<AActor *> Candidates;
   UGameplayStatics::GetAllActorsWithTag(World, LockOnTargetTag, Candidates);
 
   const FVector MyLoc = GetActorLocation();
   const FVector Forward = GetActorForwardVector();
-  AActor* Best = nullptr;
+  AActor *Best = nullptr;
   float BestScore = -1.f;
 
-  for (AActor* Actor : Candidates) {
-    if (!Actor || Actor == this) continue;
+  for (AActor *Actor : Candidates) {
+    if (!Actor || Actor == this)
+      continue;
     const float DistSq = FVector::DistSquared(MyLoc, Actor->GetActorLocation());
-    if (DistSq > LockOnRange * LockOnRange) continue;
+    if (DistSq > LockOnRange * LockOnRange)
+      continue;
     FVector ToActor = (Actor->GetActorLocation() - MyLoc).GetSafeNormal2D();
     const float Dot = FVector::DotProduct(Forward, ToActor);
-    if (Dot < 0.3f) continue; // 要喺前方一定角度內
-    const float Score = Dot / (1.f + FMath::Sqrt(DistSq) * 0.01f); // 愈近、愈正前方愈好
+    if (Dot < 0.3f)
+      continue; // 要喺前方一定角度內
+    const float Score =
+        Dot / (1.f + FMath::Sqrt(DistSq) * 0.01f); // 愈近、愈正前方愈好
     if (Score > BestScore) {
       BestScore = Score;
       Best = Actor;
@@ -514,30 +550,138 @@ void ASekiroCharacter::OnPostureBroken() {
 }
 
 void ASekiroCharacter::HandleParryResult(EParryResult Result) {
-  auto DoParryFeedback = [this]() {
-    if (ParryBlockSound) UGameplayStatics::PlaySoundAtLocation(this, ParryBlockSound, GetActorLocation());
-    if (ParryBlockParticle) UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParryBlockParticle, WeaponMesh ? WeaponMesh->GetComponentLocation() : GetActorLocation(), FRotator::ZeroRotator, true);
-    if (ParryBlockNiagara) UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ParryBlockNiagara, WeaponMesh ? WeaponMesh->GetComponentLocation() : GetActorLocation(), FRotator::ZeroRotator, FVector(1.f), true, true);
-    OnParryBlockFeedback_Implementation();
-    if (ParryHitStopDuration > 0.f && ParryHitStopTimeScale > 0.f) {
-      UWorld* W = GetWorld();
+  // 取得自己（防守方）武器位置
+  const FVector DefenderWeaponLoc =
+      WeaponMesh ? WeaponMesh->GetComponentLocation() : GetActorLocation();
+
+  // 嘗試搵攻擊方（敵人）嘅武器位置，用嚟喺敵人嗰邊都生成火花
+  FVector AttackerWeaponLoc = DefenderWeaponLoc; // 預設用防守方位置
+  if (bIsLockedOn && LockedTarget) {
+    // 搵敵人嘅 WeaponMesh
+    ASekiroCharacter *EnemyChar = Cast<ASekiroCharacter>(LockedTarget);
+    if (EnemyChar && EnemyChar->WeaponMesh) {
+      AttackerWeaponLoc = EnemyChar->WeaponMesh->GetComponentLocation();
+    } else {
+      AttackerWeaponLoc = LockedTarget->GetActorLocation() +
+                          LockedTarget->GetActorForwardVector() * 80.f;
+    }
+  }
+
+  // 中間點：兩把刀碰撞嘅位置（用嚟生成火花最自然）
+  const FVector ClashPoint = (DefenderWeaponLoc + AttackerWeaponLoc) * 0.5f;
+
+  // === Helper: 執行 Hit Stop（暫停效果）===
+  auto DoHitStop = [this](float Duration, float TimeScale) {
+    if (Duration > 0.f && TimeScale > 0.f) {
+      UWorld *W = GetWorld();
       if (W && W->GetWorldSettings()) {
-        W->GetWorldSettings()->TimeDilation = ParryHitStopTimeScale;
+        W->GetWorldSettings()->TimeDilation = TimeScale;
         FTimerHandle H;
-        float GameDuration = ParryHitStopDuration * ParryHitStopTimeScale;
-        W->GetTimerManager().SetTimer(H, [W]() { if (W && W->GetWorldSettings()) W->GetWorldSettings()->TimeDilation = 1.f; }, GameDuration, false);
+        float GameDuration = Duration * TimeScale;
+        W->GetTimerManager().SetTimer(
+            H,
+            [W]() {
+              if (W && W->GetWorldSettings())
+                W->GetWorldSettings()->TimeDilation = 1.f;
+            },
+            GameDuration, false);
       }
     }
   };
+
+  // === Helper: Camera Shake ===
+  auto DoCameraShake = [this](TSubclassOf<UCameraShakeBase> ShakeClass) {
+    if (ShakeClass) {
+      APlayerController *PC = Cast<APlayerController>(GetController());
+      if (PC && PC->PlayerCameraManager) {
+        PC->PlayerCameraManager->StartCameraShake(ShakeClass, 1.0f);
+      }
+    }
+  };
+
+  // === Helper: 喺指定位置生成攻擊方火花 ===
+  auto DoAttackerSpark = [this](const FVector &Loc) {
+    if (AttackerSparkNiagara) {
+      UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+          GetWorld(), AttackerSparkNiagara, Loc, FRotator::ZeroRotator,
+          FVector(1.f), true, true);
+    }
+  };
+
+  // === 舊版 Cascade 粒子（兼容）===
+  auto DoLegacyParticle = [this](const FVector &Loc) {
+    if (ParryBlockParticle) {
+      UGameplayStatics::SpawnEmitterAtLocation(
+          GetWorld(), ParryBlockParticle, Loc, FRotator::ZeroRotator, true);
+    }
+  };
+
   switch (Result) {
-  case EParryResult::Perfect:
-    if (ParrySuccessMontage) PlayAnimMontage(ParrySuccessMontage);
-    DoParryFeedback();
+  case EParryResult::Perfect: {
+    // 動畫
+    if (ParrySuccessMontage)
+      PlayAnimMontage(ParrySuccessMontage);
+
+    // 音效 — 精準格擋嘅清脆金屬聲
+    if (PerfectParrySound)
+      UGameplayStatics::PlaySoundAtLocation(this, PerfectParrySound,
+                                            ClashPoint);
+
+    // 火花 — 精準格擋用明亮大火花
+    if (PerfectParryNiagara)
+      UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+          GetWorld(), PerfectParryNiagara, ClashPoint, FRotator::ZeroRotator,
+          FVector(1.f), true, true);
+
+    // 敵人嗰邊都生成火花
+    DoAttackerSpark(AttackerWeaponLoc);
+
+    // 舊版粒子
+    DoLegacyParticle(ClashPoint);
+
+    // Camera Shake — 精準格擋較大震動
+    DoCameraShake(PerfectParryCameraShake);
+
+    // Hit Stop — 精準格擋較強嘅時間暫停
+    DoHitStop(PerfectParryHitStopDuration, PerfectParryHitStopTimeScale);
+
+    // Blueprint Feedback
+    OnParryBlockFeedback();
+
+    if (GEngine)
+      GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow,
+                                       TEXT("★ PERFECT PARRY! ★"));
     break;
-  case EParryResult::Blocked:
-    DoParryFeedback();
+  }
+  case EParryResult::Blocked: {
+    // 音效 — 普通格擋嘅金屬碰撞聲
+    if (BlockSound)
+      UGameplayStatics::PlaySoundAtLocation(this, BlockSound, ClashPoint);
+
+    // 火花 — 普通格擋用細啲暗啲嘅火花
+    if (BlockNiagara)
+      UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+          GetWorld(), BlockNiagara, ClashPoint, FRotator::ZeroRotator,
+          FVector(1.f), true, true);
+
+    // 敵人嗰邊都生成火花
+    DoAttackerSpark(AttackerWeaponLoc);
+
+    // 舊版粒子
+    DoLegacyParticle(ClashPoint);
+
+    // Camera Shake — 普通格擋較輕震動
+    DoCameraShake(BlockCameraShake);
+
+    // Hit Stop — 普通格擋較弱嘅時間暫停
+    DoHitStop(BlockHitStopDuration, BlockHitStopTimeScale);
+
+    // Blueprint Feedback
+    OnParryBlockFeedback();
+
+    // 播放格擋被擊中動畫
     if (BlockHitMontage) {
-      UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+      UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
       if (Anim) {
         FOnMontageEnded EndDel;
         EndDel.BindUObject(this, &ASekiroCharacter::OnBlockHitMontageEnded);
@@ -546,29 +690,41 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
       PlayAnimMontage(BlockHitMontage);
     }
     break;
+  }
   case EParryResult::Failed:
-    if (HitMontage) PlayAnimMontage(HitMontage);
+    if (HitMontage)
+      PlayAnimMontage(HitMontage);
     break;
   }
 }
 
-void ASekiroCharacter::OnBlockStartMontageEnded(UAnimMontage* Montage, bool bInterrupted) {
-  if (bInterrupted || !bIsBlocking) return;
-  if (BlockLoopMontage) PlayAnimMontage(BlockLoopMontage);
+void ASekiroCharacter::OnBlockStartMontageEnded(UAnimMontage *Montage,
+                                                bool bInterrupted) {
+  if (bInterrupted || !bIsBlocking)
+    return;
+  if (BlockLoopMontage)
+    PlayAnimMontage(BlockLoopMontage);
 }
 
-void ASekiroCharacter::OnBlockHitMontageEnded(UAnimMontage* Montage, bool bInterrupted) {
-  if (!bIsBlocking) return;
-  if (BlockLoopMontage) PlayAnimMontage(BlockLoopMontage);
+void ASekiroCharacter::OnBlockHitMontageEnded(UAnimMontage *Montage,
+                                              bool bInterrupted) {
+  if (!bIsBlocking)
+    return;
+  if (BlockLoopMontage)
+    PlayAnimMontage(BlockLoopMontage);
 }
 
-void ASekiroCharacter::OnExecutionTriggered(AActor* Target) {
+void ASekiroCharacter::OnExecutionTriggered(AActor *Target) {
   if (ExecutionMontage)
     PlayAnimMontage(ExecutionMontage);
 }
 
-void ASekiroCharacter::OnAttackStartedForTrail() { K2_OnAttackStarted_Implementation(); }
-void ASekiroCharacter::OnAttackEndedForTrail() { K2_OnAttackEnded_Implementation(); }
+void ASekiroCharacter::OnAttackStartedForTrail() {
+  K2_OnAttackStarted_Implementation();
+}
+void ASekiroCharacter::OnAttackEndedForTrail() {
+  K2_OnAttackEnded_Implementation();
+}
 
 void ASekiroCharacter::OnParryBlockFeedback_Implementation() {}
 
