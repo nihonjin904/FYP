@@ -8,7 +8,6 @@
 #include "InputActionValue.h"
 #include "SekiroCharacter.generated.h"
 
-
 class USekiroPostureComponent;
 class USekiroDeflectComponent;
 class USekiroCombatComponent;
@@ -148,13 +147,13 @@ public:
   UPROPERTY(EditAnywhere, BlueprintReadWrite,
             Category = "Sekiro|Feedback|Perfect Parry",
             meta = (ClampMin = "0", ClampMax = "0.5"))
-  float PerfectParryHitStopDuration = 0.08f;
+  float PerfectParryHitStopDuration = 0.05f;
 
   /** 精準格擋 Hit Stop 時嘅時間縮放 */
   UPROPERTY(EditAnywhere, BlueprintReadWrite,
             Category = "Sekiro|Feedback|Perfect Parry",
             meta = (ClampMin = "0.01", ClampMax = "1"))
-  float PerfectParryHitStopTimeScale = 0.05f;
+  float PerfectParryHitStopTimeScale = 0.08f;
 
   // ========== 普通格擋 (Blocked) Feedback ==========
 
@@ -177,7 +176,7 @@ public:
   UPROPERTY(EditAnywhere, BlueprintReadWrite,
             Category = "Sekiro|Feedback|Block",
             meta = (ClampMin = "0", ClampMax = "0.5"))
-  float BlockHitStopDuration = 0.04f;
+  float BlockHitStopDuration = 0.03f;
 
   /** 普通格擋 Hit Stop 時嘅時間縮放 */
   UPROPERTY(EditAnywhere, BlueprintReadWrite,

@@ -415,38 +415,48 @@ void ASekiroCharacter::StartBlock() {
   if (!DeflectComponent)
     return;
 
-  LastBlockInputTimeSeconds =
-      GetWorld() ? GetWorld()->GetTimeSeconds() : LastBlockInputTimeSeconds;
-  DeflectComponent->StartBlocking();
-  bIsBlocking = true;
-  Tags.AddUnique(FName("State.Combat.HoldingBlock"));
+  // 只喺第一次按下時更新時間同播動畫（Triggered 每幀呼叫唔應該重複做）
+  if (!bIsBlocking) {
+    LastBlockInputTimeSeconds =
+        GetWorld() ? GetWorld()->GetTimeSeconds() : LastBlockInputTimeSeconds;
 
-  // BlockStart：播完後由 OnBlockStartMontageEnded 接 BlockLoop
-  if (ParryAttemptMontage) {
-    UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
-    if (Anim) {
-      FOnMontageEnded EndDel;
-      EndDel.BindUObject(this, &ASekiroCharacter::OnBlockStartMontageEnded);
-      Anim->Montage_SetEndDelegate(EndDel, ParryAttemptMontage);
-      PlayAnimMontage(ParryAttemptMontage);
-    } else {
-      PlayAnimMontage(ParryAttemptMontage);
-      if (BlockLoopMontage)
-        PlayAnimMontage(BlockLoopMontage);
+    DeflectComponent->StartBlocking();
+    bIsBlocking = true;
+    Tags.AddUnique(FName("State.Combat.HoldingBlock"));
+
+    // BlockStart：播完後由 OnBlockStartMontageEnded 接 BlockLoop
+    if (ParryAttemptMontage) {
+      UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+      if (Anim) {
+        FOnMontageEnded EndDel;
+        EndDel.BindUObject(this, &ASekiroCharacter::OnBlockStartMontageEnded);
+        Anim->Montage_SetEndDelegate(EndDel, ParryAttemptMontage);
+        PlayAnimMontage(ParryAttemptMontage);
+      } else {
+        PlayAnimMontage(ParryAttemptMontage);
+        if (BlockLoopMontage)
+          PlayAnimMontage(BlockLoopMontage);
+      }
+    } else if (BlockLoopMontage) {
+      PlayAnimMontage(BlockLoopMontage);
     }
-  } else if (BlockLoopMontage) {
-    PlayAnimMontage(BlockLoopMontage);
   }
+  // 按住期間：只保持 bIsBlocking = true（唔更新時間、唔重播動畫）
 }
 
 void ASekiroCharacter::StopBlock() {
   if (!DeflectComponent)
     return;
 
+  // 如果根本冇喺 Blocking 狀態，直接返回
+  if (!bIsBlocking)
+    return;
+
   // 保護：避免 Enhanced Input trigger 導致一按即 Completed 令擋格立即取消
+  // 只保護最初 0.05 秒（縮短保護時間，避免放開右鍵後卡住）
   if (GetWorld()) {
     const double Now = GetWorld()->GetTimeSeconds();
-    if ((Now - LastBlockInputTimeSeconds) < 0.10) {
+    if ((Now - LastBlockInputTimeSeconds) < 0.05) {
       return;
     }
   }
@@ -604,7 +614,7 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
     if (AttackerSparkNiagara) {
       UNiagaraFunctionLibrary::SpawnSystemAtLocation(
           GetWorld(), AttackerSparkNiagara, Loc, FRotator::ZeroRotator,
-          FVector(1.f), true, true);
+          FVector(2.f), true, true);
     }
   };
 
@@ -631,7 +641,7 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
     if (PerfectParryNiagara)
       UNiagaraFunctionLibrary::SpawnSystemAtLocation(
           GetWorld(), PerfectParryNiagara, ClashPoint, FRotator::ZeroRotator,
-          FVector(1.f), true, true);
+          FVector(3.f), true, true);
 
     // 敵人嗰邊都生成火花
     DoAttackerSpark(AttackerWeaponLoc);
@@ -662,7 +672,7 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
     if (BlockNiagara)
       UNiagaraFunctionLibrary::SpawnSystemAtLocation(
           GetWorld(), BlockNiagara, ClashPoint, FRotator::ZeroRotator,
-          FVector(1.f), true, true);
+          FVector(2.f), true, true);
 
     // 敵人嗰邊都生成火花
     DoAttackerSpark(AttackerWeaponLoc);
