@@ -117,8 +117,17 @@ public:
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
   TObjectPtr<UAnimMontage> HitMontage; // Failed parry (Take damage)
 
+  /** 被直接打中（沒擋住）時嘅 Camera Shake */
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Feedback|Hit")
+  TSubclassOf<UCameraShakeBase> HitCameraShake;
+
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
   TObjectPtr<UAnimMontage> ExecutionMontage;
+
+  /** 處決時播放嘅音效 */
+  UPROPERTY(EditAnywhere, BlueprintReadWrite,
+            Category = "Sekiro|Feedback|Execution")
+  TObjectPtr<class USoundBase> ExecutionSound;
 
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")
   TObjectPtr<UAnimMontage> StunMontage;
@@ -271,12 +280,12 @@ public:
   /** 鎖定時瞄準目標嘅高度偏移（避免鎖地面；數值愈大鏡頭愈抬高） */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|LockOn",
             meta = (ClampMin = "0", ClampMax = "300"))
-  float LockOnTargetZOffset = 140.f;
+  float LockOnTargetZOffset = 80.f;
 
   /** 鎖定時將 Camera Boom 的 Socket Offset Z 抬高（令相機位置唔會太低） */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|LockOn",
             meta = (ClampMin = "-200", ClampMax = "200"))
-  float LockOnCameraSocketOffsetZ = 60.f;
+  float LockOnCameraSocketOffsetZ = 20.f;
 
   /** 鎖定時 Pitch 夾角限制（防止鏡頭向下） */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|LockOn",
@@ -295,7 +304,7 @@ public:
   /** 固定俯視 Pitch（負數 = 俯視向下；建議 -25 ~ -45） */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|LockOn",
             meta = (ClampMin = "-89", ClampMax = "0"))
-  float LockOnFixedPitch = -35.f;
+  float LockOnFixedPitch = -20.f;
 
   /** 鎖定目標嘅 Actor Tag（例如 "Enemy"；BP_SekiroEnemy 需加此 Tag） */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|LockOn")
