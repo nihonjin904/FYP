@@ -17,4 +17,19 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category="Sekiro|UI")
 	TObjectPtr<class USekiroWidgetBase> HUDWidget;
+
+protected:
+	// 玩家事件回調
+	UFUNCTION()
+	void OnPlayerHealthChanged(float NewHealth, float MaxHealth);
+
+	UFUNCTION()
+	void OnPlayerPostureChanged(float CurrentPosture, float MaxPosture);
+
+	// 敵人事件回調
+	UFUNCTION()
+	void OnEnemyHealthChanged(float NewHealth, float MaxHealth);
+
+	UFUNCTION()
+	void OnEnemyPostureChanged(float CurrentPosture, float MaxPosture);
 };

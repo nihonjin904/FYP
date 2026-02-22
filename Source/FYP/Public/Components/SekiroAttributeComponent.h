@@ -31,6 +31,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Sekiro|Attributes")
 	float CurrentHealth;
 
+	// 無敵狀態（處決期間為 true）
+	UPROPERTY(BlueprintReadWrite, Category="Sekiro|Attributes")
+	bool bIsInvincible = false;
+
 	UPROPERTY(BlueprintAssignable, Category="Sekiro|Attributes")
 	FOnHealthChanged OnHealthChanged;
 

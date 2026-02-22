@@ -19,4 +19,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Sekiro|UI")
 	void UpdateHealth(float Current, float Max);
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Sekiro|UI")
+	void UpdateEnemyHealth(float Current, float Max);
 };

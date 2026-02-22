@@ -14,6 +14,9 @@ void USekiroAttributeComponent::BeginPlay()
 
 void USekiroAttributeComponent::ApplyDamage(float DamageAmount)
 {
+	// 無敵狀態下不受傷害（例如處決期間）
+	if (bIsInvincible) return;
+
 	if (CurrentHealth <= 0.0f) return;
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - DamageAmount, 0.0f, MaxHealth);

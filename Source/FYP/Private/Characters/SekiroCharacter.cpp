@@ -20,6 +20,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/SekiroGameHUDWidget.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Particles/ParticleSystem.h"
@@ -507,6 +508,9 @@ void ASekiroCharacter::StartBlock() {
   if (!DeflectComponent)
     return;
 
+  // HUD 閃爍 - 右鍵
+  if (USekiroGameHUDWidget* HUD = USekiroGameHUDWidget::GetInstance())
+    HUD->FlashWidgetByName(FName("Img_Block"));
   // 只喺第一次按下時更新時間同播動畫（Triggered 每幀呼叫唔應該重複做）
   if (!bIsBlocking) {
     LastBlockInputTimeSeconds =
@@ -576,6 +580,11 @@ void ASekiroCharacter::StopBlock() {
 void ASekiroCharacter::Attack() {
   if (!CombatComponent)
     return;
+
+  // HUD 閃爍 - 左鍵
+  if (USekiroGameHUDWidget* HUD = USekiroGameHUDWidget::GetInstance())
+    HUD->FlashWidgetByName(FName("Img_Attack"));
+
   // 左鍵：若可處決（架勢條滿）則直接處決，否則攻擊
   if (CombatComponent->RequestExecution())
     return;
@@ -585,6 +594,10 @@ void ASekiroCharacter::Attack() {
 void ASekiroCharacter::LockOnPressed() { ToggleLockOn(); }
 
 void ASekiroCharacter::ToggleLockOn() {
+  // HUD 閃爍 - 鎖定
+  if (USekiroGameHUDWidget* HUD = USekiroGameHUDWidget::GetInstance())
+    HUD->FlashWidgetByName(FName("Img_LockOn"));
+
   UWorld *World = GetWorld();
   if (!World)
     return;
@@ -837,8 +850,48 @@ void ASekiroCharacter::OnBlockHitMontageEnded(UAnimMontage *Montage,
 }
 
 void ASekiroCharacter::OnExecutionTriggered(AActor *Target) {
-  if (ExecutionMontage)
-    PlayAnimMontage(ExecutionMontage);
+  // 進入無敵狀態
+  if (AttributeComponent) {
+    AttributeComponent->bIsInvincible = true;
+  }
+
+  // 停止格擋狀態（防止處決後卡在格擋動畫）
+  if (bIsBlocking) {
+    StopBlock();
+  }
+
+  // 停止所有正在播放的動畫
+  UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+  if (Anim) {
+    Anim->Montage_StopGroupByName(0.2f, FName("DefaultGroup"));
+  }
+
+  // 重置 Combo 狀態
+  if (CombatComponent) {
+    CombatComponent->ResetCombo();
+  }
+
+  // 播放處決動畫
+  if (ExecutionMontage) {
+    float Duration = PlayAnimMontage(ExecutionMontage);
+    
+    // 處決動畫結束後取消無敵
+    if (Duration > 0.0f) {
+      FTimerHandle InvincibilityTimer;
+      GetWorldTimerManager().SetTimer(
+          InvincibilityTimer,
+          [this]() {
+            if (AttributeComponent) {
+              AttributeComponent->bIsInvincible = false;
+            }
+          },
+          Duration, false);
+    } else {
+      // 動畫播放失敗，立即取消無敵
+      if (AttributeComponent)
+        AttributeComponent->bIsInvincible = false;
+    }
+  }
 
   // 處決音效
   if (ExecutionSound) {
