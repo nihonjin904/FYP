@@ -2,8 +2,10 @@
 #include "Characters/SekiroCharacter.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/SekiroAttributeComponent.h"
+#include "Components/SekiroEnemyAttributeComponent.h"
 #include "Components/SekiroCombatComponent.h"
 #include "Components/SekiroDeflectComponent.h"
 #include "Components/SekiroPostureComponent.h"
@@ -914,17 +916,75 @@ void ASekiroCharacter::K2_OnAttackStarted_Implementation() {}
 void ASekiroCharacter::K2_OnAttackEnded_Implementation() {}
 
 void ASekiroCharacter::OnDeath() {
+  // === 1. 停止所有移動 ===
   if (GetCharacterMovement()) {
     GetCharacterMovement()->StopMovementImmediately();
     GetCharacterMovement()->DisableMovement();
   }
 
-  if (Controller) {
-    DisableInput(Cast<APlayerController>(Controller));
+  // === 2. 停止 AI 攻擊行為（敵人專用）===
+  USekiroEnemyAttributeComponent* EnemyAI =
+      FindComponentByClass<USekiroEnemyAttributeComponent>();
+  if (EnemyAI) {
+    EnemyAI->bAutoAttack = false;
+    EnemyAI->SetComponentTickEnabled(false);
   }
 
+  // === 3. 禁用玩家輸入（玩家專用）===
+  if (Controller) {
+    APlayerController* PC = Cast<APlayerController>(Controller);
+    if (PC) {
+      DisableInput(PC);
+    }
+  }
+
+  // === 4. 停止所有正在播放的動畫 ===
+  UAnimInstance* Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+  if (Anim) {
+    Anim->Montage_Stop(0.1f);
+  }
+
+  // === 5. 停止格擋狀態 ===
+  if (bIsBlocking) {
+    if (DeflectComponent) {
+      DeflectComponent->StopBlocking();
+    }
+    bIsBlocking = false;
+  }
+
+  // === 6. 重置戰鬥狀態 ===
+  if (CombatComponent) {
+    CombatComponent->ResetCombo();
+  }
+
+  // === 7. 播放死亡動畫 ===
   if (DeathMontage) {
-    PlayAnimMontage(DeathMontage);
+    float Duration = PlayAnimMontage(DeathMontage);
+
+    if (Duration > 0.0f) {
+      // 在 BlendOut 開始之前凍結動畫（提前 0.3 秒）
+      float FreezeTime = FMath::Max(Duration - 0.3f, 0.1f);
+      FTimerHandle DeathFreezeTimer;
+      GetWorldTimerManager().SetTimer(
+          DeathFreezeTimer,
+          [this]() {
+            // 凍結動畫在最後一幀（保持倒地姿勢）
+            if (GetMesh()) {
+              GetMesh()->bPauseAnims = true;
+              GetMesh()->bNoSkeletonUpdate = true;
+            }
+
+            // 禁用碰撞（不再阻擋玩家移動）
+            if (GetCapsuleComponent()) {
+              GetCapsuleComponent()->SetCollisionEnabled(
+                  ECollisionEnabled::NoCollision);
+            }
+
+            // 停止 Tick（節省效能）
+            SetActorTickEnabled(false);
+          },
+          FreezeTime, false);
+    }
   }
 }
 
