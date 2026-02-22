@@ -600,12 +600,30 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
   };
 
   // === Helper: Camera Shake ===
-  auto DoCameraShake = [this](TSubclassOf<UCameraShakeBase> ShakeClass) {
+  auto DoCameraShake = [this](TSubclassOf<UCameraShakeBase> ShakeClass,
+                              const FString &DebugLabel) {
     if (ShakeClass) {
       APlayerController *PC = Cast<APlayerController>(GetController());
       if (PC && PC->PlayerCameraManager) {
         PC->PlayerCameraManager->StartCameraShake(ShakeClass, 1.0f);
+        if (GEngine)
+          GEngine->AddOnScreenDebugMessage(
+              -1, 2.0f, FColor::Magenta,
+              FString::Printf(TEXT("Camera Shake: %s ✓"), *DebugLabel));
+      } else {
+        if (GEngine)
+          GEngine->AddOnScreenDebugMessage(
+              -1, 2.0f, FColor::Red,
+              FString::Printf(
+                  TEXT("Camera Shake FAIL: %s (No PC/CameraManager)"),
+                  *DebugLabel));
       }
+    } else {
+      if (GEngine)
+        GEngine->AddOnScreenDebugMessage(
+            -1, 2.0f, FColor::Red,
+            FString::Printf(TEXT("Camera Shake FAIL: %s (ShakeClass=None)"),
+                            *DebugLabel));
     }
   };
 
@@ -650,7 +668,7 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
     DoLegacyParticle(ClashPoint);
 
     // Camera Shake — 精準格擋較大震動
-    DoCameraShake(PerfectParryCameraShake);
+    DoCameraShake(PerfectParryCameraShake, TEXT("PerfectParry"));
 
     // Hit Stop — 精準格擋較強嘅時間暫停
     DoHitStop(PerfectParryHitStopDuration, PerfectParryHitStopTimeScale);
@@ -681,7 +699,7 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
     DoLegacyParticle(ClashPoint);
 
     // Camera Shake — 普通格擋較輕震動
-    DoCameraShake(BlockCameraShake);
+    DoCameraShake(BlockCameraShake, TEXT("Block"));
 
     // Hit Stop — 普通格擋較弱嘅時間暫停
     DoHitStop(BlockHitStopDuration, BlockHitStopTimeScale);
@@ -704,6 +722,8 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
   case EParryResult::Failed:
     if (HitMontage)
       PlayAnimMontage(HitMontage);
+    // Camera Shake — 被直接打中（沒有擋住）
+    DoCameraShake(HitCameraShake, TEXT("Hit(Failed)"));
     break;
   }
 }
@@ -727,6 +747,12 @@ void ASekiroCharacter::OnBlockHitMontageEnded(UAnimMontage *Montage,
 void ASekiroCharacter::OnExecutionTriggered(AActor *Target) {
   if (ExecutionMontage)
     PlayAnimMontage(ExecutionMontage);
+
+  // 處決音效
+  if (ExecutionSound) {
+    FVector SoundLoc = Target ? Target->GetActorLocation() : GetActorLocation();
+    UGameplayStatics::PlaySoundAtLocation(this, ExecutionSound, SoundLoc);
+  }
 }
 
 void ASekiroCharacter::OnAttackStartedForTrail() {
@@ -756,3 +782,8 @@ void ASekiroCharacter::OnDeath() {
     PlayAnimMontage(DeathMontage);
   }
 }
+
+// version 2 — 2026年2月22日 23:10 (香港時間)
+// v1：加處決音效、被打Camera Shake、DoCameraShake Debug訊息
+// v2：降低鎖定敵人時Camera高度 (LockOnTargetZOffset 140→80, CameraSocketOffsetZ
+// 60→20, FixedPitch -35→-20)
