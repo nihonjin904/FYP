@@ -17,6 +17,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/WorldSettings.h"
 #include "GameplayTagContainer.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
@@ -24,6 +26,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
+
 
 ASekiroCharacter::ASekiroCharacter() {
   PrimaryActorTick.bCanEverTick = true;
@@ -94,6 +97,95 @@ ASekiroCharacter::ASekiroCharacter() {
     WeaponMesh->SetStaticMesh(CubeMeshAsset.Object);
     WeaponMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 1.0f));
   }
+
+  // ================================================================
+  // === 自動載入資源（不再需要手動在 Blueprint 設定）===
+  // ================================================================
+
+  // --- 音效 ---
+  static ConstructorHelpers::FObjectFinder<USoundBase> PerfectParrySoundAsset(
+      TEXT("/Game/sound_effect/Perfect_Parry_音效.Perfect_Parry_音效"));
+  if (PerfectParrySoundAsset.Succeeded())
+    PerfectParrySound = PerfectParrySoundAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<USoundBase> BlockSoundAsset(
+      TEXT("/Game/sound_effect/普通擋刀.普通擋刀"));
+  if (BlockSoundAsset.Succeeded())
+    BlockSound = BlockSoundAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<USoundBase> ExecutionSoundAsset(
+      TEXT("/Game/sound_effect/處決聲音.處決聲音"));
+  if (ExecutionSoundAsset.Succeeded())
+    ExecutionSound = ExecutionSoundAsset.Object;
+
+  // --- Camera Shake ---
+  static ConstructorHelpers::FClassFinder<UCameraShakeBase>
+      PerfectParryShakeAsset(
+          TEXT("/Game/character_block_particle/BP_PerfectParryShake"));
+  if (PerfectParryShakeAsset.Succeeded())
+    PerfectParryCameraShake = PerfectParryShakeAsset.Class;
+
+  static ConstructorHelpers::FClassFinder<UCameraShakeBase> BlockShakeAsset(
+      TEXT("/Game/character_block_particle/BP_BlockShake"));
+  if (BlockShakeAsset.Succeeded()) {
+    BlockCameraShake = BlockShakeAsset.Class;
+    HitCameraShake = BlockShakeAsset.Class; // 被打時也用同一個 Shake
+  }
+
+  // --- Niagara 特效 ---
+  static ConstructorHelpers::FObjectFinder<UNiagaraSystem>
+      PerfectParryNiagaraAsset(
+          TEXT("/Game/character_block_particle/"
+               "NS_PerfectParrySpark.NS_PerfectParrySpark"));
+  if (PerfectParryNiagaraAsset.Succeeded())
+    PerfectParryNiagara = PerfectParryNiagaraAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UNiagaraSystem> BlockNiagaraAsset(
+      TEXT("/Game/character_block_particle/NS_BlockSpark.NS_BlockSpark"));
+  if (BlockNiagaraAsset.Succeeded())
+    BlockNiagara = BlockNiagaraAsset.Object;
+
+  // --- Input Actions ---
+  static ConstructorHelpers::FObjectFinder<UInputAction> LockOnActionAsset(
+      TEXT("/Game/ThirdPerson/Input/IA_LockOn.IA_LockOn"));
+  if (LockOnActionAsset.Succeeded())
+    LockOnAction = LockOnActionAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UInputAction> BlockActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Block.IA_Block"));
+  if (BlockActionAsset.Succeeded())
+    BlockAction = BlockActionAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UInputAction> AttackActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Attack.IA_Attack"));
+  if (AttackActionAsset.Succeeded())
+    AttackAction = AttackActionAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UInputAction> ExecutionActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Execution.IA_Execution"));
+  if (ExecutionActionAsset.Succeeded())
+    ExecutionAction = ExecutionActionAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Jump.IA_Jump"));
+  if (JumpActionAsset.Succeeded())
+    JumpAction = JumpActionAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Move.IA_Move"));
+  if (MoveActionAsset.Succeeded())
+    MoveAction = MoveActionAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UInputAction> LookActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Look.IA_Look"));
+  if (LookActionAsset.Succeeded())
+    LookAction = LookActionAsset.Object;
+
+  static ConstructorHelpers::FObjectFinder<UInputMappingContext>
+      DefaultMappingAsset(
+          TEXT("/Game/ThirdPerson/Input/IMC_Default.IMC_Default"));
+  if (DefaultMappingAsset.Succeeded())
+    DefaultMappingContext = DefaultMappingAsset.Object;
 }
 
 void ASekiroCharacter::BeginPlay() {
@@ -783,7 +875,8 @@ void ASekiroCharacter::OnDeath() {
   }
 }
 
-// version 2 — 2026年2月22日 23:10 (香港時間)
+// version 3 — 2026年2月22日 23:50 (香港時間)
 // v1：加處決音效、被打Camera Shake、DoCameraShake Debug訊息
-// v2：降低鎖定敵人時Camera高度 (LockOnTargetZOffset 140→80, CameraSocketOffsetZ
-// 60→20, FixedPitch -35→-20)
+// v2：降低鎖定敵人時Camera高度
+// v3：用 ConstructorHelpers
+// 自動載入所有音效/CameraShake/Niagara/InputAction（永遠不會因Blueprint重置而丟失）
