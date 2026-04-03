@@ -51,7 +51,7 @@
 #include "Materials/MaterialExpressionSaturate.h"
 #include "Materials/MaterialExpressionNoise.h"
 #include "Materials/MaterialExpressionTwoSidedSign.h"
-#include "Materials/MaterialExpressionPerInstanceRandom.h"
+// #include "Materials/MaterialExpressionPerInstanceRandom.h" // Removed: LNK2019 in UE 5.5
 #include "UObject/SavePackage.h"
 
 FEpicUnrealMCPMaterialGraphCommands::FEpicUnrealMCPMaterialGraphCommands()
@@ -292,10 +292,7 @@ UMaterialExpression* FEpicUnrealMCPMaterialGraphCommands::CreateExpression(UMate
     {
         NewExpression = NewObject<UMaterialExpressionNoise>(Material);
     }
-    else if (ExpressionType == TEXT("PerInstanceRandom"))
-    {
-        NewExpression = NewObject<UMaterialExpressionPerInstanceRandom>(Material);
-    }
+    // PerInstanceRandom removed: LNK2019 linker issue in UE 5.5
 
     if (NewExpression)
     {
