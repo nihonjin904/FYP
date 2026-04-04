@@ -1,10 +1,6 @@
 #include "Components/SekiroEnemyAttributeComponent.h"
 #include "Components/SekiroCombatComponent.h"
-<<<<<<< Updated upstream
 #include "Characters/SekiroCharacter.h"
-=======
-#include "Characters/SekiroCharacter.h" // Added include
->>>>>>> Stashed changes
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
@@ -87,17 +83,7 @@ void USekiroEnemyAttributeComponent::TickComponent(float DeltaTime, ELevelTick T
 		}
 		if (TimeSinceLastAttack >= AttackInterval)
 		{
-<<<<<<< Updated upstream
-=======
-			// CombatComp->RequestAttack(); // Old logic (No animation)
-			
-			// New logic: Call Character's Attack function to play animation
-			if (ASekiroCharacter* SekiroChar = Cast<ASekiroCharacter>(GetOwner()))
-			{
-				SekiroChar->Attack();
-			}
-			
->>>>>>> Stashed changes
+
 			TimeSinceLastAttack = 0.0f;
 			StartComboAttackCycle();
 		}

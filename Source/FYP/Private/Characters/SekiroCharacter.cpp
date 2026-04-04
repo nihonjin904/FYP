@@ -300,7 +300,6 @@ void ASekiroCharacter::BeginPlay() {
   }
 }
 
-<<<<<<< Updated upstream
 void ASekiroCharacter::Tick(float DeltaTime) {
   Super::Tick(DeltaTime);
 
@@ -333,8 +332,6 @@ void ASekiroCharacter::Tick(float DeltaTime) {
                                       ? BlockWeaponComponent.Get()
                                       : BlockWeaponPivot.Get();
   if (RotateTarget) {
-    // 就算 bIsBlocking 因 Enhanced Input Trigger 抖動，都用 Montage
-    // 狀態保持打橫
     UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
     const bool bInBlockMontage =
         (Anim &&
@@ -363,18 +360,14 @@ void ASekiroCharacter::Tick(float DeltaTime) {
       } else {
         APlayerController *PC = Cast<APlayerController>(Controller);
         if (PC) {
-          // 鎖定時角色一定面向目標：用 Controller Yaw
-          // 控制角色方向（唔跟移動方向）
           bUseControllerRotationYaw = true;
           if (GetCharacterMovement())
             GetCharacterMovement()->bOrientRotationToMovement = false;
 
-          // 用視角位置指向目標（避免向下鎖地），用 RInterpTo 避免 360 轉圈
           FVector ViewLoc;
           FRotator ViewRot;
           PC->GetPlayerViewPoint(ViewLoc, ViewRot);
 
-          // 抬高瞄準點，避免鎖地面；同時抬高 Camera Boom 位置
           const FVector TargetLoc = LockedTarget->GetActorLocation() +
                                     FVector(0.f, 0.f, LockOnTargetZOffset);
           if (CameraBoom) {
@@ -414,7 +407,6 @@ void ASekiroCharacter::Tick(float DeltaTime) {
       }
     }
   } else {
-    // 無鎖定時還原：角色跟移動方向轉向
     bUseControllerRotationYaw = false;
     if (GetCharacterMovement())
       GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -464,16 +456,6 @@ void ASekiroCharacter::Tick(float DeltaTime) {
       }
     }
   }
-=======
-void ASekiroCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(10, 0.f, bIsBlocking ? FColor::Green : FColor::Red, FString::Printf(TEXT("bIsBlocking: %s"), bIsBlocking ? TEXT("TRUE") : TEXT("FALSE")));
-	}
->>>>>>> Stashed changes
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -494,23 +476,9 @@ void ASekiroCharacter::SetupPlayerInputComponent(
     EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered,
                                        this, &ASekiroCharacter::Move);
 
-<<<<<<< Updated upstream
     // Looking
     EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered,
                                        this, &ASekiroCharacter::Look);
-=======
-		// Blocking
-		if (BlockAction)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Binding BlockAction: %s"), *BlockAction->GetName());
-			EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &ASekiroCharacter::StartBlock);
-			EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASekiroCharacter::StopBlock);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("BlockAction is NULL in SetupPlayerInputComponent!"));
-		}
->>>>>>> Stashed changes
 
     // Blocking
     if (BlockAction) {
@@ -596,7 +564,6 @@ void ASekiroCharacter::Look(const FInputActionValue &Value) {
   }
 }
 
-<<<<<<< Updated upstream
 void ASekiroCharacter::StartBlock() {
   if (!DeflectComponent)
     return;
@@ -642,7 +609,6 @@ void ASekiroCharacter::StopBlock() {
     return;
 
   // 保護：避免 Enhanced Input trigger 導致一按即 Completed 令擋格立即取消
-  // 只保護最初 0.05 秒（縮短保護時間，避免放開右鍵後卡住）
   if (GetWorld()) {
     const double Now = GetWorld()->GetTimeSeconds();
     if ((Now - LastBlockInputTimeSeconds) < 0.05) {
@@ -654,8 +620,6 @@ void ASekiroCharacter::StopBlock() {
   bIsBlocking = false;
   Tags.Remove(FName("State.Combat.HoldingBlock"));
 
-  // 只停止「擋格相關」Montage，唔好一口氣 Stop 所有（避免攻擊/受擊 Montage
-  // 異常）
   UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
   if (Anim) {
     if (ParryAttemptMontage)
@@ -668,42 +632,6 @@ void ASekiroCharacter::StopBlock() {
   if (BlockEndMontage) {
     PlayAnimMontage(BlockEndMontage);
   }
-=======
-void ASekiroCharacter::StartBlock()
-{
-	UE_LOG(LogTemp, Warning, TEXT("StartBlock Called (Log)!"));
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("StartBlock Called!"));
-
-	if (DeflectComponent)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DeflectComponent is Valid. Setting bIsBlocking = true"));
-		DeflectComponent->StartBlocking();
-		bIsBlocking = true;
-
-		// Play Parry Attempt (Fast guard up)
-		if (ParryAttemptMontage)
-		{
-			PlayAnimMontage(ParryAttemptMontage);
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("DeflectComponent is NULL! bIsBlocking NOT set."));
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("DeflectComponent is NULL!"));
-	}
-}
-
-void ASekiroCharacter::StopBlock()
-{
-	UE_LOG(LogTemp, Warning, TEXT("StopBlock Called (Log)!"));
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("StopBlock Called!"));
-
-	if (DeflectComponent)
-	{
-		DeflectComponent->StopBlocking();
-		bIsBlocking = false;
-	}
->>>>>>> Stashed changes
 }
 
 void ASekiroCharacter::Attack() {
