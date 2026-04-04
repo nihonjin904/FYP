@@ -58,9 +58,29 @@ void USekiroEnemyAttributeComponent::TickComponent(float DeltaTime, ELevelTick T
 		}
 	}
 
+	// Debug: unconditional tick trace every 3s
+	static float GlobalDebugTimer = 0.f;
+	GlobalDebugTimer += DeltaTime;
+	if (GlobalDebugTimer >= 3.0f) {
+		GlobalDebugTimer = 0.f;
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.5f, FColor::White,
+			FString::Printf(TEXT("EnemyAI Tick: bAutoAttack=%d CombatComp=%s"),
+				bAutoAttack, CombatComp ? TEXT("OK") : TEXT("NULL")));
+	}
+
 	if (bAutoAttack && CombatComp && !ComboTimerHandle.IsValid())
 	{
 		TimeSinceLastAttack += DeltaTime;
+		// Debug: show status every 3 sec
+		static float DebugTimer = 0.f;
+		DebugTimer += DeltaTime;
+		if (DebugTimer >= 3.0f) {
+			DebugTimer = 0.f;
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.5f, FColor::Orange,
+				FString::Printf(TEXT("EnemyAI: bAutoAttack=%d CombatComp=%s TimeSince=%.1f / %.1f"),
+					bAutoAttack, CombatComp ? TEXT("OK") : TEXT("NULL"),
+					TimeSinceLastAttack, AttackInterval));
+		}
 		if (TimeSinceLastAttack >= AttackInterval)
 		{
 			TimeSinceLastAttack = 0.0f;

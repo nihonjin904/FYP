@@ -83,15 +83,16 @@ ASekiroCharacter::ASekiroCharacter() {
   DeathblowWidget->SetRelativeLocation(
       FVector(0.0f, 0.0f, 50.0f)); // Chest/Head level
 
-  // BlockWeaponPivot：手 (hand_r) → Pivot → WeaponMesh，擋刀時只轉 Pivot
+  // BlockWeaponPivot：手 → Pivot → WeaponMesh，擋刀時只轉 Pivot
   // 就唔會被動畫蓋過
+  // 注意：Constructor 用 WeaponSocketName 預設值；BP 覆寫值喺 BeginPlay 重新 Attach
   BlockWeaponPivot =
       CreateDefaultSubobject<USceneComponent>(TEXT("BlockWeaponPivot"));
-  BlockWeaponPivot->SetupAttachment(GetMesh(), FName("hand_r"));
+  BlockWeaponPivot->SetupAttachment(GetMesh(), WeaponSocketName);
 
   WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
   WeaponMesh->SetupAttachment(
-      BlockWeaponPivot); // 掛喺 Pivot 下面，唔直接掛 hand_r
+      BlockWeaponPivot); // 掛喺 Pivot 下面，唔直接掛 hand
   WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
   static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(
@@ -193,6 +194,70 @@ ASekiroCharacter::ASekiroCharacter() {
 
 void ASekiroCharacter::BeginPlay() {
   Super::BeginPlay();
+
+  // --- 確保 C++ 成員指針有效（BP 設定的組件在 CDO 可能丟失） ---
+  if (!CombatComponent) {
+    CombatComponent = FindComponentByClass<USekiroCombatComponent>();
+  }
+  if (GEngine) {
+    GEngine->AddOnScreenDebugMessage(-1, 8.0f, CombatComponent ? FColor::Green : FColor::Red,
+      FString::Printf(TEXT("[%s] CombatComponent: %s"),
+        *GetName(), CombatComponent ? TEXT("OK") : TEXT("NULL")));
+  }
+
+  // Re-attach 武器到 BP 設定的 socket
+  if (BlockWeaponPivot && GetMesh()) {
+    BlockWeaponPivot->AttachToComponent(
+        GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+        WeaponSocketName);
+  }
+
+  // --- 動態載入武器模型 ---
+  if (WeaponMesh) {
+    UStaticMesh *SwordMesh = Cast<UStaticMesh>(StaticLoadObject(
+        UStaticMesh::StaticClass(), nullptr,
+        TEXT("/Game/Sword_Animations/Demo/Mannequin/Character/Mesh/"
+             "Sword.Sword")));
+    if (SwordMesh) {
+      WeaponMesh->SetStaticMesh(SwordMesh);
+      WeaponMesh->SetWorldScale3D(FVector(1.f, 1.f, 1.f));
+      WeaponMesh->SetRelativeRotation(FRotator(180.f, 0.f, 0.f));
+    }
+  }
+
+  // --- 自動填充 ComboMontages ---
+  if (CombatComponent) {
+    if (GEngine)
+      GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Cyan,
+        FString::Printf(TEXT("[%s] ComboMontages count: %d"),
+          *GetName(), CombatComponent->ComboMontages.Num()));
+    if (CombatComponent->ComboMontages.Num() == 0) {
+      const TCHAR *ComboPaths[] = {
+          TEXT("/Game/Combo_Attack_01_01_Seq_Montage_Patchouli"
+               ".Combo_Attack_01_01_Seq_Montage_Patchouli"),
+          TEXT("/Game/Combo_Attack_01_02_Seq_Montage_Patchouli"
+               ".Combo_Attack_01_02_Seq_Montage_Patchouli"),
+          TEXT("/Game/Combo_Attack_01_03_Seq_Montage_Patchouli"
+               ".Combo_Attack_01_03_Seq_Montage_Patchouli"),
+          TEXT("/Game/Combo_Attack_01_04_Seq_Montage_Patchouli"
+               ".Combo_Attack_01_04_Seq_Montage_Patchouli"),
+      };
+      for (const TCHAR *Path : ComboPaths) {
+        UAnimMontage *M = Cast<UAnimMontage>(
+            StaticLoadObject(UAnimMontage::StaticClass(), nullptr, Path));
+        if (M) {
+          CombatComponent->ComboMontages.Add(M);
+        } else if (GEngine) {
+          GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Red,
+            FString::Printf(TEXT("FAILED to load montage: %s"), Path));
+        }
+      }
+      if (GEngine)
+        GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green,
+          FString::Printf(TEXT("Auto-loaded %d ComboMontages"),
+                          CombatComponent->ComboMontages.Num()));
+    }
+  }
 
   // Add Input Mapping Context
   if (APlayerController *PlayerController =
@@ -580,16 +645,26 @@ void ASekiroCharacter::StopBlock() {
 }
 
 void ASekiroCharacter::Attack() {
-  if (!CombatComponent)
+  if (!CombatComponent) {
+    if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red,
+      FString::Printf(TEXT("[%s] Attack(): CombatComponent NULL!"), *GetName()));
     return;
+  }
+
+  if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Magenta,
+    FString::Printf(TEXT("[%s] Attack() called, ComboMontages=%d"),
+      *GetName(), CombatComponent->ComboMontages.Num()));
 
   // HUD 閃爍 - 左鍵
   if (USekiroGameHUDWidget* HUD = USekiroGameHUDWidget::GetInstance())
     HUD->FlashWidgetByName(FName("Img_Attack"));
 
-  // 左鍵：若可處決（架勢條滿）則直接處決，否則攻擊
-  if (CombatComponent->RequestExecution())
+  // 若可處決（架勢條滿）則直接處決，否則攻擊
+  if (CombatComponent->RequestExecution()) {
+    if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Purple,
+      TEXT("Attack(): RequestExecution returned true, skipping attack"));
     return;
+  }
   CombatComponent->RequestAttack();
 }
 

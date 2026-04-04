@@ -74,6 +74,10 @@ public:
   UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|Weapon")
   TObjectPtr<UStaticMeshComponent> WeaponMesh;
 
+  /** 武器掛喺邊個骨骼 socket 上面（UE4 Mannequin: hand_r; VRM: 右手首） */
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Weapon")
+  FName WeaponSocketName = FName("hand_r");
+
   /** 擋刀時用嘅旋轉軸：手 (hand_r) → 此 Pivot → WeaponMesh。擋刀時只轉呢個
    * Pivot，刀就會打橫，唔會被動畫蓋過。 */
   UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sekiro|Weapon")
