@@ -300,6 +300,7 @@ void ASekiroCharacter::BeginPlay() {
   }
 }
 
+<<<<<<< Updated upstream
 void ASekiroCharacter::Tick(float DeltaTime) {
   Super::Tick(DeltaTime);
 
@@ -463,6 +464,16 @@ void ASekiroCharacter::Tick(float DeltaTime) {
       }
     }
   }
+=======
+void ASekiroCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(10, 0.f, bIsBlocking ? FColor::Green : FColor::Red, FString::Printf(TEXT("bIsBlocking: %s"), bIsBlocking ? TEXT("TRUE") : TEXT("FALSE")));
+	}
+>>>>>>> Stashed changes
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -483,9 +494,23 @@ void ASekiroCharacter::SetupPlayerInputComponent(
     EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered,
                                        this, &ASekiroCharacter::Move);
 
+<<<<<<< Updated upstream
     // Looking
     EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered,
                                        this, &ASekiroCharacter::Look);
+=======
+		// Blocking
+		if (BlockAction)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Binding BlockAction: %s"), *BlockAction->GetName());
+			EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &ASekiroCharacter::StartBlock);
+			EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASekiroCharacter::StopBlock);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("BlockAction is NULL in SetupPlayerInputComponent!"));
+		}
+>>>>>>> Stashed changes
 
     // Blocking
     if (BlockAction) {
@@ -571,6 +596,7 @@ void ASekiroCharacter::Look(const FInputActionValue &Value) {
   }
 }
 
+<<<<<<< Updated upstream
 void ASekiroCharacter::StartBlock() {
   if (!DeflectComponent)
     return;
@@ -642,6 +668,42 @@ void ASekiroCharacter::StopBlock() {
   if (BlockEndMontage) {
     PlayAnimMontage(BlockEndMontage);
   }
+=======
+void ASekiroCharacter::StartBlock()
+{
+	UE_LOG(LogTemp, Warning, TEXT("StartBlock Called (Log)!"));
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("StartBlock Called!"));
+
+	if (DeflectComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DeflectComponent is Valid. Setting bIsBlocking = true"));
+		DeflectComponent->StartBlocking();
+		bIsBlocking = true;
+
+		// Play Parry Attempt (Fast guard up)
+		if (ParryAttemptMontage)
+		{
+			PlayAnimMontage(ParryAttemptMontage);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("DeflectComponent is NULL! bIsBlocking NOT set."));
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("DeflectComponent is NULL!"));
+	}
+}
+
+void ASekiroCharacter::StopBlock()
+{
+	UE_LOG(LogTemp, Warning, TEXT("StopBlock Called (Log)!"));
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("StopBlock Called!"));
+
+	if (DeflectComponent)
+	{
+		DeflectComponent->StopBlocking();
+		bIsBlocking = false;
+	}
+>>>>>>> Stashed changes
 }
 
 void ASekiroCharacter::Attack() {

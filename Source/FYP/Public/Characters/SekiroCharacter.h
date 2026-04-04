@@ -61,8 +61,16 @@ public:
   UFUNCTION()
   void OnDeath();
 
+<<<<<<< Updated upstream
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
   void Attack();
+=======
+	UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
+	void Attack();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	TObjectPtr<USpringArmComponent> CameraBoom;
+>>>>>>> Stashed changes
 
   UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
   TObjectPtr<USpringArmComponent> CameraBoom;
@@ -327,6 +335,7 @@ public:
   void OnBlockHitMontageEnded(UAnimMontage *Montage, bool bInterrupted);
 
 protected:
+<<<<<<< Updated upstream
   void Move(const FInputActionValue &Value);
   void Look(const FInputActionValue &Value);
 
@@ -343,4 +352,13 @@ protected:
 
   /** 緩存鎖定前 CameraBoom SocketOffset，用於解鎖還原 */
   FVector DefaultCameraBoomSocketOffset = FVector::ZeroVector;
+=======
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	
+	void StartBlock();
+	void StopBlock();
+	// void Attack(); // Moved to public
+	void Execution(const FInputActionValue& Value);
+>>>>>>> Stashed changes
 };
