@@ -1,5 +1,6 @@
 #include "Components/SekiroCombatComponent.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimNotifyState_AttackWindow.h"
 #include "Characters/SekiroCharacter.h"
 #include "Components/SekiroAttributeComponent.h"
 #include "Components/SekiroDeflectComponent.h"
@@ -42,107 +43,76 @@ void USekiroCombatComponent::RequestAttack() {
         bCanCombo = false;
         bComboQueued = false;
 
-        // 播放第一段 Combo
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(
-              -1, 1.0f, FColor::Yellow,
-              FString::Printf(TEXT("Attack: %d / %d"), ComboIndex + 1,
-                              ComboMontages.Num()));
-
         LastComboActionTime = GetWorld()->GetTimeSeconds();
         OnAttackStarted.Broadcast();
         float Duration = AnimInstance->Montage_Play(ComboMontages[ComboIndex]);
-
-        // 動態計算窗口開啟時間 (動畫的 50%)
-        float WindowOpenTime =
-            (Duration > 0.0f) ? (Duration * 0.5f) : ComboWindowTime;
 
         if (Duration <= 0.0f) {
           bIsAttacking = false;
           return;
         }
 
+        // 自動檢測 Montage 是否有 AnimNotifyState_AttackWindow
+        // 若沒有，宇用 timer fallback 自動誈算攻擊判定窗口
+        auto MontageHasAttackWindow = [](UAnimMontage* M) -> bool {
+          if (!M) return false;
+          for (const FAnimNotifyEvent& N : M->Notifies) {
+            if (N.NotifyStateClass &&
+                N.NotifyStateClass->IsA(UAnimNotifyState_AttackWindow::StaticClass()))
+              return true;
+          }
+          return false;
+        };
+
+        if (!MontageHasAttackWindow(ComboMontages[ComboIndex])) {
+          StartAutoAttackWindow(Duration); // fallback
+        }
+
         // 綁定 Montage 結束回調
         FOnMontageEnded EndDelegate;
         EndDelegate.BindUObject(this, &USekiroCombatComponent::OnMontageEnded);
-        AnimInstance->Montage_SetEndDelegate(EndDelegate,
-                                             ComboMontages[ComboIndex]);
+        AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboMontages[ComboIndex]);
 
+        float WindowOpenTime = Duration > 0.0f ? Duration * 0.5f : ComboWindowTime;
         GetWorld()->GetTimerManager().SetTimer(
             ComboWindowHandle,
-            [this]() {
-              if (bIsAttacking) {
-                EnableComboWindow();
-              }
-            },
+            [this]() { if (bIsAttacking) EnableComboWindow(); },
             WindowOpenTime, false);
-
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(
-              -1, 1.0f, FColor::Yellow,
-              FString::Printf(TEXT("Combo %d / %d (Window: %.2fs)"),
-                              ComboIndex + 1, ComboMontages.Num(),
-                              WindowOpenTime));
       }
     }
     // 情況 2：正在攻擊中，且在 Combo 窗口內 - 接下一段
     else if (bCanCombo) {
       int32 NextIndex = ComboIndex + 1;
 
-      // 檢查是否還有下一段 Combo
       if (ComboMontages.IsValidIndex(NextIndex) && ComboMontages[NextIndex]) {
         ComboIndex = NextIndex;
         bCanCombo = false;
         bComboQueued = false;
 
-        // 播放下一段 Combo
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(
-              -1, 2.0f, FColor::Yellow,
-              FString::Printf(TEXT("Requesting Attack %d: %s"), ComboIndex + 1,
-                              *ComboMontages[ComboIndex]->GetName()));
-
-        LastComboActionTime =
-            GetWorld()->GetTimeSeconds(); // UPDATE THIS BEFORE PLAYING
+        LastComboActionTime = GetWorld()->GetTimeSeconds();
         float Duration = AnimInstance->Montage_Play(ComboMontages[ComboIndex]);
 
-        // 動態計算窗口開啟時間 (動畫的 50%)
-        float WindowOpenTime =
-            (Duration > 0.0f) ? (Duration * 0.5f) : ComboWindowTime;
-
-        if (Duration <= 0.0f) {
-          if (GEngine)
-            GEngine->AddOnScreenDebugMessage(
-                -1, 2.0f, FColor::Red, TEXT("Next Attack Failed to Play!"));
+        if (Duration <= 0.0f)
           return;
-        }
 
-        // 綁定 Montage 結束回調
+        // 自動檢測：若無 AnimNotifyState_AttackWindow，使用 timer fallback
+        bool bHasWindow = false;
+        for (const FAnimNotifyEvent& N : ComboMontages[ComboIndex]->Notifies)
+          if (N.NotifyStateClass &&
+              N.NotifyStateClass->IsA(UAnimNotifyState_AttackWindow::StaticClass()))
+          { bHasWindow = true; break; }
+        if (!bHasWindow)
+          StartAutoAttackWindow(Duration);
+
         FOnMontageEnded EndDelegate;
         EndDelegate.BindUObject(this, &USekiroCombatComponent::OnMontageEnded);
-        AnimInstance->Montage_SetEndDelegate(EndDelegate,
-                                             ComboMontages[ComboIndex]);
+        AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboMontages[ComboIndex]);
 
+        float WindowOpenTime = Duration > 0.0f ? Duration * 0.5f : ComboWindowTime;
         GetWorld()->GetTimerManager().SetTimer(
             ComboWindowHandle,
-            [this]() {
-              if (bIsAttacking) {
-                EnableComboWindow();
-              }
-            },
+            [this]() { if (bIsAttacking) EnableComboWindow(); },
             WindowOpenTime, false);
-
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(
-              -1, 1.0f, FColor::Yellow,
-              FString::Printf(TEXT("Combo %d / %d (Window: %.2fs)"),
-                              ComboIndex + 1, ComboMontages.Num(),
-                              WindowOpenTime));
-      } else {
-        // 已經是最後一段，重置
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green,
-                                           TEXT("Combo Finished!"));
       }
     }
     // 情況 3：正在攻擊中，但不在 Combo 窗口內 - 記住輸入，等待窗口開啟
@@ -275,6 +245,7 @@ void USekiroCombatComponent::ResetCombo() {
   if (GetWorld()) {
     GetWorld()->GetTimerManager().ClearTimer(ComboWindowHandle);
   }
+  StopAutoAttackWindow();
 
   if (GEngine)
     GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Cyan,
@@ -298,70 +269,33 @@ void USekiroCombatComponent::DisableComboWindow() { bCanCombo = false; }
 
 void USekiroCombatComponent::OnMontageEnded(UAnimMontage *Montage,
                                             bool bInterrupted) {
-  // 只有在被外部打斷（如受傷）時才強制重置，
-  // 否則如果是正常結束，我們要檢查是否有緩衝輸入
   if (bInterrupted) {
-    // 時間閾值判斷：如果是最近 0.3 秒內觸發的 Montage 播放導致的中斷，則忽略
-    // 這解決了 "Same Asset Restart" 導致的誤判問題
-    double TimeSinceAction = GetWorld()->GetTimeSeconds() - LastComboActionTime;
-
-    // Increased threshold slightly to cover frame delays
-    if (TimeSinceAction < 0.3) {
-      if (GEngine)
-        GEngine->AddOnScreenDebugMessage(
-            -1, 2.0f, FColor::Cyan,
-            FString::Printf(TEXT("Ignored Self-Interruption (Time: %.4f)"),
-                            TimeSinceAction));
-      return;
-    }
-
-    // 檢查是否是 "舊的" Montage 被中斷 (Double check for safety)
+    // 如果被中斷的是"舊"的 Montage（因為我們已切換到下一段 Combo），忽略它
+    // 例如：Attack 2 打斷 Attack 1 時，OnMontageEnded(Attack1, interrupted=true) 觸發，
+    // 但 ComboIndex 已經遞增到 1，所以 ComboMontages[ComboIndex] != Attack1 → 忽略
     if (ComboMontages.IsValidIndex(ComboIndex) &&
         ComboMontages[ComboIndex] != Montage) {
-      if (GEngine)
-        GEngine->AddOnScreenDebugMessage(
-            -1, 2.0f, FColor::Cyan,
-            TEXT("Ignored Interruption (Not Current Montage)"));
-      return;
+      return; // 故意的連招切換，忽略此中斷
     }
-
-    if (GEngine)
-      GEngine->AddOnScreenDebugMessage(
-          -1, 2.0f, FColor::Orange,
-          FString::Printf(TEXT("Full Reset! Interruption Time: %.4f"),
-                          TimeSinceAction));
-
+    // 真正的外部中斷（受傷等），重置 Combo
     ResetCombo();
     return;
   }
 
-  // 如果有緩衝的輸入（玩家在動畫期間按了攻擊），直接接下一段
+  // 正常結束：檢查是否有緩衝輸入
   if (bComboQueued) {
     bComboQueued = false;
-
-    // 強制允許連招（因為是在動畫結束點接招）
     bCanCombo = true;
     RequestAttack();
   } else {
-    // 沒有輸入，連招結束
-    // 這裡給一個極短的緩衝期，以防萬一
-    FTimerHandle TimerHandle;
-    GetWorld()->GetTimerManager().SetTimer(
-        TimerHandle,
-        [this]() {
-          // 再次檢查是否有新的輸入進來
-          if (!bIsAttacking && !bComboQueued) {
-            ResetCombo();
-          }
-        },
-        0.01f, false);
-
-    // 標記攻擊結束
     bIsAttacking = false;
     bCanCombo = false;
     OnAttackEnded.Broadcast();
+    ResetCombo();
   }
 }
+
+
 
 UAnimInstance *USekiroCombatComponent::GetOwnerAnimInstance() const {
   AActor *Owner = GetOwner();
@@ -476,4 +410,52 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
 
   // Draw Debug Line
   DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Red, false, 1.0f);
+}
+
+// ========== 自動攻擊窗口實現 ==========
+
+void USekiroCombatComponent::StartAutoAttackWindow(float AnimDuration) {
+  if (!GetWorld() || AnimDuration <= 0.0f)
+    return;
+
+  // 清除之前的攻擊窗口計時器
+  StopAutoAttackWindow();
+
+  float StartTime = AnimDuration * AttackWindowStartPercent;
+  float EndTime = AnimDuration * AttackWindowEndPercent;
+  float WindowDuration = EndTime - StartTime;
+
+  if (WindowDuration <= 0.0f)
+    return;
+
+  // 在 StartTime 開啟攻擊窗口
+  GetWorld()->GetTimerManager().SetTimer(
+      AttackWindowStartHandle,
+      [this, WindowDuration]() {
+        // 重置命中標記
+        ResetAttackHit();
+
+        // 開始每幀執行攻擊判定
+        GetWorld()->GetTimerManager().SetTimer(
+            AttackWindowTickHandle,
+            [this]() { PerformAttackHitCheck(); },
+            0.016f, // ~60fps tick
+            true    // repeating
+        );
+
+        // 在窗口結束時停止
+        GetWorld()->GetTimerManager().SetTimer(
+            AttackWindowEndHandle,
+            [this]() { StopAutoAttackWindow(); },
+            WindowDuration, false);
+      },
+      StartTime, false);
+}
+
+void USekiroCombatComponent::StopAutoAttackWindow() {
+  if (GetWorld()) {
+    GetWorld()->GetTimerManager().ClearTimer(AttackWindowStartHandle);
+    GetWorld()->GetTimerManager().ClearTimer(AttackWindowTickHandle);
+    GetWorld()->GetTimerManager().ClearTimer(AttackWindowEndHandle);
+  }
 }

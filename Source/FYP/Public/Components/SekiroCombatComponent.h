@@ -102,11 +102,28 @@ public:
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combo")
   float ComboWindowTime = 0.3f;
 
+  // ========== 自動攻擊窗口（無需 AnimNotify） ==========
+
+  /** 攻擊判定開始的時間點（動畫長度的百分比，0.0-1.0） */
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combo",
+            meta = (ClampMin = "0.0", ClampMax = "1.0"))
+  float AttackWindowStartPercent = 0.20f;
+
+  /** 攻擊判定結束的時間點（動畫長度的百分比，0.0-1.0） */
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combo",
+            meta = (ClampMin = "0.0", ClampMax = "1.0"))
+  float AttackWindowEndPercent = 0.65f;
+
   // 上一次執行 Combo 動作的時間（用於判斷中斷是否由自身觸發）
   double LastComboActionTime = 0.0;
 
   // Timer Handle for Combo Window
   FTimerHandle ComboWindowHandle;
+
+  // Timer Handles for auto attack window
+  FTimerHandle AttackWindowStartHandle;
+  FTimerHandle AttackWindowTickHandle;
+  FTimerHandle AttackWindowEndHandle;
 
   // 重置 Combo 到初始狀態
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combo")
@@ -123,6 +140,12 @@ public:
   // 當 Montage 結束時的回調
   UFUNCTION()
   void OnMontageEnded(UAnimMontage *Montage, bool bInterrupted);
+
+  /** 啟動自動攻擊窗口計時器 */
+  void StartAutoAttackWindow(float AnimDuration);
+
+  /** 停止自動攻擊窗口計時器 */
+  void StopAutoAttackWindow();
 
 protected:
   // Helper to get posture component from an actor
