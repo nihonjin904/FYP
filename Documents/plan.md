@@ -1,5 +1,5 @@
 # Arcane Souls: Rebirth — FYP 開發計劃 (plan.md)
-> 最後更新：2026-04-01 | 負責：Lam Chi Him (kelvelam6)
+> 最後更新：2026-04-07 | 負責：Lam Chi Him (kelvelam6)
 
 ---
 
@@ -9,8 +9,8 @@
 
 | # | 目標 | 優先級 | 狀態 |
 |---|---|---|---|
-| 1 | 玩家角色模型 + 基本移動 | 🔴 必須 | 已有模型（reimu/remilia/patchouli），需綁定戰鬥 |
-| 2 | Boss 怪物模型整合 | 🔴 必須 | 待定模型來源（FAB / 自製 / Mixamo） |
+| 1 | 玩家角色模型 + 基本移動 | 🔴 必須 | ⚙️ 進行中 — Reimu Model 已 apply，修正斜站/武器/動作問題中 |
+| 2 | Boss 怪物模型整合 | 🔴 必須 | ✅ BP_SekiroEnemy Model 已成功 apply |
 | 3 | Boss 四種攻擊動作 (25%各觸發) | 🔴 必須 | 需製作 AM + AI 隨機選擇邏輯 |
 | 4 | 主場地一個（Boss Arena） | 🔴 必須 | 已有 Map_CombatDemo，需美化 |
 | 5 | 開場對話 + AI Gen 人物立繪 | 🟡 重要 | 需 AI 生圖 + UMG 對話 UI |
@@ -271,3 +271,33 @@ Content/
 ---
 
 *plan.md by Kelvin Lam (kelvelam6) | Arcane Souls: Rebirth | FYP 2025-2026*
+
+---
+
+## 🚨 緊急優先修正（2026-04-07）
+
+### ⚠️ GitHub 協作規則（必須遵守）
+- **不可亂改朋友也在改的共用文件**（特別是 `SekiroCharacter.h` / `SekiroCharacter.cpp`）
+- 如需改 C++ 核心文件，必須先確認朋友當前的工作分支，或使用 Branch + PR 流程
+- 優先用 Blueprint/Component 方式解決，減少對共用 C++ 文件的依賴
+
+### 🔧 當前狀態（已確認）
+- ✅ 主角 Reimu（`BP_SekiroCharacter`）Model 已成功 apply
+- ✅ 敵人 Boss（`BP_SekiroEnemy`）Model 已成功 apply
+
+### 🔴 待修問題（按優先順序）
+
+| # | 問題 | 原因 | 解決方向 | 狀態 |
+|---|---|---|---|---|
+| A | 人物斜著站（身體/頭部歪） | VRM rest pose 與 Mannequin 不同，retarget 後偏差 | 先把 VRMMesh Roll 改回 0°；如仍歪則調 `RTG__魔_博麗_霊夢` | 🔧 未解決 |
+| B | 刀拿的位置不對 | WeaponMesh 掛在 Mannequin `hand_r`，Reimu 手位置不重合 | Runtime C++ re-attach 至 VRM `J_Bip_R_Hand` | 🔧 未解決 |
+| C | 擋刀（Block）動作不對 | Block animation/pivot 跟著 Mannequin 骨架，Reimu 骨架位置偏 | 同問題 B，刀位修好後一並驗證 | 🔧 未解決 |
+| D | 跑步時拿刀不對 | 同問題 B，武器 attach 點錯 | 同問題 B | 🔧 未解決 |
+
+### 📋 行動計劃
+1. **【Editor，無需改 C++】** 打開 `BP_SekiroCharacter` → 選 VRMMesh Component → Details → 把 Rotation Roll 改為 0° → Compile → Play 測試斜站問題
+2. **【Editor，無需改 C++】** 如果仍斜，打開 `RTG__魔_博麗_霊夢`（IKRetargeter）手動調 spine/head chain mapping
+3. **【需改 C++】** 在 `SekiroCharacter.cpp` BeginPlay() 加 runtime re-attach 代碼（確認朋友分支後才動）→ rebuild → 調整武器 offset
+4. 修好後做全動作驗證：Idle / Walk / Run / Attack / Block / Dodge / Death
+
+> 詳細技術分析見 `task.md`

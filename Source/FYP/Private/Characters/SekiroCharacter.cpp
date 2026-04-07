@@ -298,6 +298,41 @@ void ASekiroCharacter::BeginPlay() {
     CombatComponent->OnAttackEnded.AddDynamic(
         this, &ASekiroCharacter::OnAttackEndedForTrail);
   }
+
+  // === 武器 Re-Attach 到 Reimu VRM 右手骨骼 ===
+  // 只對 Player（有 APlayerController）生效，敵人 SekiroEnemy 不受影響
+  // 注意：面向修正在 Blueprint 的 VRMMesh Rotation 裡設定，不在 C++ 做
+  if (Cast<APlayerController>(GetController())) {
+    TArray<USkeletalMeshComponent*> SkelComps;
+    GetComponents<USkeletalMeshComponent>(SkelComps);
+    for (USkeletalMeshComponent* Comp : SkelComps) {
+      if (Comp && Comp != GetMesh() && Comp->GetSkeletalMeshAsset()) {
+        // --- 武器掛載到 VRM 右手骨骼 ---
+        if (BlockWeaponPivot) {
+          FName BoneName = FName(TEXT("\u53f3\u624b\u9996"));  // 右手首
+          if (Comp->DoesSocketExist(BoneName)) {
+            BlockWeaponPivot->AttachToComponent(
+                Comp,
+                FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+                BoneName);
+            if (GEngine) {
+              GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green,
+                  FString::Printf(TEXT("[Reimu] Weapon on %s"),
+                                  *BoneName.ToString()));
+            }
+          } else {
+            if (GEngine) {
+              GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red,
+                  FString::Printf(TEXT("[Reimu] Bone '%s' NOT FOUND!"),
+                                  *BoneName.ToString()));
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+  // === END 武器 Re-Attach ===
 }
 
 void ASekiroCharacter::Tick(float DeltaTime) {
