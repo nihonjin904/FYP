@@ -289,13 +289,13 @@ void ASekiroCharacter::BeginPlay() {
           *GetName(), CombatComponent->ComboMontages.Num(), bIsReimuSkeleton));
 
     if (CombatComponent->ComboMontages.Num() == 0) {
-      // Reimu（玩家）用 _Reimu 版，Patchouli（敵人）用 _Patchouli 版
+      // Reimu（玩家）用 Combo_Attack_03_Reimu，Patchouli（敵人）用 Combo_Attack_01_Patchouli
       const TCHAR* ComboSuffix = bIsReimuSkeleton ? TEXT("_Reimu") : TEXT("_Patchouli");
+      const TCHAR* ComboNum    = bIsReimuSkeleton ? TEXT("03") : TEXT("01");
       for (int32 i = 1; i <= 4; i++) {
-        // FString::Printf 必須接受字面量格式字符串；用字符串拼接代替
-        FString Path = FString::Printf(TEXT("/Game/Combo_Attack_01_0")) + FString::FromInt(i)
+        FString Path = FString(TEXT("/Game/Combo_Attack_")) + ComboNum + TEXT("_0") + FString::FromInt(i)
             + TEXT("_Seq_Montage") + ComboSuffix
-            + TEXT(".Combo_Attack_01_0") + FString::FromInt(i)
+            + TEXT(".Combo_Attack_") + ComboNum + TEXT("_0") + FString::FromInt(i)
             + TEXT("_Seq_Montage") + ComboSuffix;
 
         UAnimMontage* M = Cast<UAnimMontage>(
