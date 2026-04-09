@@ -92,7 +92,7 @@ public:
   /** 擋刀時武器相對手嘅旋轉（例如打橫：(0, 0, 90)）。非擋刀時會還原為 0。 */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Weapon",
             meta = (DisplayName = "Block Weapon Rotation"))
-  FRotator BlockWeaponRotationWhenBlocking = FRotator(0.f, 0.f, 90.f);
+  FRotator BlockWeaponRotationWhenBlocking = FRotator(35.f, 80.f, 20.f);
 
   // Animations
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Animation")

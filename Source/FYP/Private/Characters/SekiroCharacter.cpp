@@ -249,14 +249,23 @@ void ASekiroCharacter::BeginPlay() {
 
 
   if (WeaponMesh) {
-    UStaticMesh *SwordMesh = Cast<UStaticMesh>(StaticLoadObject(
-        UStaticMesh::StaticClass(), nullptr,
-        TEXT("/Game/Sword_Animations/Demo/Mannequin/Character/Mesh/"
-             "Sword.Sword")));
-    if (SwordMesh) {
-      WeaponMesh->SetStaticMesh(SwordMesh);
-      WeaponMesh->SetWorldScale3D(FVector(1.f, 1.f, 1.f));
-      WeaponMesh->SetRelativeRotation(FRotator(180.f, 0.f, 0.f));
+    // Only override weapon mesh if still using the default Cube from constructor.
+    // If the BP already has a custom mesh (e.g. KatanaMesh + M_Katana), respect it.
+    UStaticMesh* CurrentMesh = WeaponMesh->GetStaticMesh();
+    bool bIsDefaultCube = !CurrentMesh ||
+        CurrentMesh->GetPathName().Contains(TEXT("BasicShapes/Cube"));
+    if (bIsDefaultCube) {
+      UStaticMesh *SwordMesh = Cast<UStaticMesh>(StaticLoadObject(
+          UStaticMesh::StaticClass(), nullptr,
+          TEXT("/Game/Sword_Animations/Demo/Mannequin/Character/Mesh/"
+               "Sword.Sword")));
+      if (SwordMesh) {
+        WeaponMesh->SetStaticMesh(SwordMesh);
+        WeaponMesh->SetWorldScale3D(FVector(1.f, 1.f, 1.f));
+        WeaponMesh->SetRelativeRotation(FRotator(180.f, 0.f, 0.f));
+      }
+    } else {
+      // Custom mesh (KatanaMesh etc.) — use rotation from BP editor, no override
     }
   }
 
@@ -423,6 +432,9 @@ void ASekiroCharacter::Tick(float DeltaTime) {
   USceneComponent *RotateTarget = BlockWeaponComponent
                                       ? BlockWeaponComponent.Get()
                                       : BlockWeaponPivot.Get();
+
+
+
   if (RotateTarget) {
     UAnimInstance *Anim = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
     const bool bInBlockMontage =
