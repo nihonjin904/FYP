@@ -262,37 +262,55 @@ void ASekiroCharacter::BeginPlay() {
 
   // --- 自動填充 ComboMontages ---
   if (CombatComponent) {
+    // 偵測骨架類型，決定載入哪套 Montage
+    USkeletalMesh* SKM = GetMesh() ? GetMesh()->GetSkeletalMeshAsset() : nullptr;
+    FString SKPath = SKM ? SKM->GetPathName().ToLower() : TEXT("");
+    const bool bIsReimuSkeleton = SKPath.Contains(TEXT("reimu")) || SKPath.Contains(TEXT("\u970a\u5922")); // reimu / 霊夢
+
+    // 若現有 Montage 骨架不符（例如 BP 裡殘留舊 Mannequin 版），強制清除讓 auto-fill 重新載入
+    if (CombatComponent->ComboMontages.Num() > 0) {
+      UAnimMontage* First = CombatComponent->ComboMontages[0];
+      if (First) {
+        FString MontagePath = First->GetPathName().ToLower();
+        bool bMontageMismatch = (bIsReimuSkeleton && !MontagePath.Contains(TEXT("reimu"))) ||
+                                (!bIsReimuSkeleton && MontagePath.Contains(TEXT("reimu")));
+        if (bMontageMismatch) {
+          CombatComponent->ComboMontages.Empty();
+          if (GEngine)
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange,
+              TEXT("[SekiroChar] Cleared incompatible ComboMontages (skeleton mismatch)"));
+        }
+      }
+    }
+
     if (GEngine)
       GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Cyan,
-        FString::Printf(TEXT("[%s] ComboMontages count: %d"),
-          *GetName(), CombatComponent->ComboMontages.Num()));
+        FString::Printf(TEXT("[%s] ComboMontages count: %d (Reimu=%d)"),
+          *GetName(), CombatComponent->ComboMontages.Num(), bIsReimuSkeleton));
+
     if (CombatComponent->ComboMontages.Num() == 0) {
-      const TCHAR *ComboPaths[] = {
-          TEXT("/Game/Combo_Attack_01_01_Seq_Montage_Patchouli"
-               ".Combo_Attack_01_01_Seq_Montage_Patchouli"),
-          TEXT("/Game/Combo_Attack_01_02_Seq_Montage_Patchouli"
-               ".Combo_Attack_01_02_Seq_Montage_Patchouli"),
-          TEXT("/Game/Combo_Attack_01_03_Seq_Montage_Patchouli"
-               ".Combo_Attack_01_03_Seq_Montage_Patchouli"),
-          TEXT("/Game/Combo_Attack_01_04_Seq_Montage_Patchouli"
-               ".Combo_Attack_01_04_Seq_Montage_Patchouli"),
-      };
-      for (const TCHAR *Path : ComboPaths) {
-        UAnimMontage *M = Cast<UAnimMontage>(
-            StaticLoadObject(UAnimMontage::StaticClass(), nullptr, Path));
+      // Reimu（玩家）用 _Reimu 版，Patchouli（敵人）用 _Patchouli 版
+      const TCHAR* ComboSuffix = bIsReimuSkeleton ? TEXT("_Reimu") : TEXT("_Patchouli");
+      const FString BasePath = TEXT("/Game/Combo_Attack_01_0%d_Seq_Montage%s.Combo_Attack_01_0%d_Seq_Montage%s");
+      for (int32 i = 1; i <= 4; i++) {
+        FString Path = FString::Printf(*BasePath, i, ComboSuffix, i, ComboSuffix);
+        UAnimMontage* M = Cast<UAnimMontage>(
+            StaticLoadObject(UAnimMontage::StaticClass(), nullptr, *Path));
         if (M) {
           CombatComponent->ComboMontages.Add(M);
         } else if (GEngine) {
           GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Red,
-            FString::Printf(TEXT("FAILED to load montage: %s"), Path));
+            FString::Printf(TEXT("FAILED to load montage: %s"), *Path));
         }
       }
       if (GEngine)
         GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Green,
-          FString::Printf(TEXT("Auto-loaded %d ComboMontages"),
-                          CombatComponent->ComboMontages.Num()));
+          FString::Printf(TEXT("Auto-loaded %d ComboMontages (%s)"),
+            CombatComponent->ComboMontages.Num(),
+            bIsReimuSkeleton ? TEXT("Reimu") : TEXT("Patchouli")));
     }
   }
+
 
   // Add Input Mapping Context
   if (APlayerController *PlayerController =
