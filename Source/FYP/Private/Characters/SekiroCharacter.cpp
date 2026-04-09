@@ -209,8 +209,9 @@ void ASekiroCharacter::BeginPlay() {
   // GetMesh() = 不可見的控制骨架（Patchouli + ABP_SekiroCharacter_Patchouli）
   // VRMMesh   = 可見的 Reimu 外觀（ABP_reimu 透過 RetargetPoseFromMesh 從 GetMesh() 取姿勢）
   {
-    static const FName VRMRightHand(TEXT("\u53f3\u624b\u9996")); // 右手首
+    // ※ 直接寫日文字符，避免 \u escape 在某些 MSVC 設定下建立 FName::None 的 bug
     static const FName VRMMeshCompName(TEXT("VRMMesh"));
+    static const FName VRMRightHandBone = FName("右手首");  // VRM 右手腕骨骼
 
     // 預設：武器跟著 GetMesh()（控制骨架，備份）
     USkeletalMeshComponent* WeaponTargetMesh = GetMesh();
@@ -221,13 +222,23 @@ void ASekiroCharacter::BeginPlay() {
     for (USkeletalMeshComponent* C : SkelMeshes) {
       if (C && C->GetFName() == VRMMeshCompName) {
         // VRMMesh 找到：這是可見的 Reimu 外觀網格
-        // 1. 修正向後傾斜（隊友錯誤設定的旋轉）
+
+        // 1. 修正向後傾斜
         C->SetRelativeRotation(FRotator::ZeroRotator);
-        // 2. 確保可見
+
+        // 2. Re-parent VRMMesh 到 GetMesh()，使 ABP_reimu 的 RetargetPoseFromMesh
+        //    (bUseAttachedParent=true) 能找到 CharacterMesh0 作為動畫來源，解決 A-pose
+        if (GetMesh()) {
+          C->AttachToComponent(GetMesh(),
+            FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+        }
+
+        // 3. 確保可見
         C->SetVisibility(true, true);
-        // 3. 武器附加到 VRMMesh 的右手骨骼
+
+        // 4. 武器附加到 VRMMesh 的右手首骨骼
         WeaponTargetMesh = C;
-        ActualSocket = VRMRightHand;
+        ActualSocket = VRMRightHandBone;
         break;
       }
     }
@@ -244,6 +255,7 @@ void ASekiroCharacter::BeginPlay() {
           *ActualSocket.ToString()));
   }
   // GetMesh() 是不可見控制骨架，保持 BP 預設的隱藏狀態（不需要 SetHiddenInGame）
+
 
 
   if (WeaponMesh) {
