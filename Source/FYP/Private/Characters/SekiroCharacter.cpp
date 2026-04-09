@@ -205,11 +205,38 @@ void ASekiroCharacter::BeginPlay() {
         *GetName(), CombatComponent ? TEXT("OK") : TEXT("NULL")));
   }
 
-  // Re-attach 武器到 BP 設定的 socket
-  if (BlockWeaponPivot && GetMesh()) {
-    BlockWeaponPivot->AttachToComponent(
-        GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-        WeaponSocketName);
+  // Re-attach 武器到正確的骨骼上
+  // 優先偵測 VRMMesh（隊友用 VRM4U 加入的額外骨架）→ 否則用 GetMesh()
+  {
+    static const FName VRMMeshCompName(TEXT("VRMMesh"));
+    USkeletalMeshComponent* TargetMesh = nullptr;
+
+    TArray<USkeletalMeshComponent*> SkelMeshes;
+    GetComponents<USkeletalMeshComponent>(SkelMeshes);
+    for (USkeletalMeshComponent* C : SkelMeshes) {
+      if (C && C->GetFName() == VRMMeshCompName) {
+        TargetMesh = C;
+        // 修正向後傾斜：清除隊友在 BP 中設定的錯誤旋轉
+        // VRM4U 已內部處理坐標系，RelativeRotation 應為 (0,0,0)
+        C->SetRelativeRotation(FRotator::ZeroRotator);
+        if (GEngine)
+          GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
+            TEXT("[SekiroCharacter] VRMMesh found → attaching weapon to 右手首, rotation reset"));
+        break;
+      }
+    }
+    if (!TargetMesh) TargetMesh = GetMesh();
+
+    // VRMMesh 使用日文骨骼名稱；標準 UE4 Mannequin 使用 BP 設定的 WeaponSocketName
+    const FName ActualSocket = (TargetMesh != GetMesh())
+        ? FName(TEXT("\u53f3\u624b\u9996"))  // 右手首
+        : WeaponSocketName;
+
+    if (BlockWeaponPivot && TargetMesh) {
+      BlockWeaponPivot->AttachToComponent(
+          TargetMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+          ActualSocket);
+    }
   }
 
   // --- 動態載入武器模型 ---
