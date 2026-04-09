@@ -251,7 +251,14 @@ void ASekiroCharacter::BeginPlay() {
           *ActualSocket.ToString()));
   }
 
-  // --- 動態載入武器模型 ---
+  // 確保 GetMesh() 可見：隊友可能把 CharacterMesh0 設為 HiddenInGame 來隱藏預設 Mannequin
+  // 現在 GetMesh() 已有 Reimu 模型，必須顯示
+  if (GetMesh() && GetMesh()->GetSkeletalMeshAsset()) {
+    GetMesh()->SetHiddenInGame(false);
+    GetMesh()->SetVisibility(true, true); // propagate to children
+  }
+
+
   if (WeaponMesh) {
     UStaticMesh *SwordMesh = Cast<UStaticMesh>(StaticLoadObject(
         UStaticMesh::StaticClass(), nullptr,
