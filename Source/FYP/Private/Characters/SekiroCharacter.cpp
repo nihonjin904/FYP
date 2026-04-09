@@ -206,37 +206,49 @@ void ASekiroCharacter::BeginPlay() {
   }
 
   // Re-attach 武器到正確的骨骼上
-  // 優先偵測 VRMMesh（隊友用 VRM4U 加入的額外骨架）→ 否則用 GetMesh()
+  // 策略：GetMesh()優先（set_character_properties 設定的），自動偵測 VRM 骨骼名稱
   {
+    static const FName VRMRightHand(TEXT("\u53f3\u624b\u9996")); // 右手首
     static const FName VRMMeshCompName(TEXT("VRMMesh"));
-    USkeletalMeshComponent* TargetMesh = nullptr;
 
+    USkeletalMeshComponent* PrimaryMesh = GetMesh();
+    FName ActualSocket = WeaponSocketName; // 預設：hand_r (UE4 Mannequin)
+
+    // 若 GetMesh() 有 VRM 骨骼，直接用它
+    if (PrimaryMesh && PrimaryMesh->GetSkeletalMeshAsset()) {
+      if (PrimaryMesh->GetBoneIndex(VRMRightHand) != INDEX_NONE)
+        ActualSocket = VRMRightHand;
+    }
+
+    // 處理隊友加的 VRMMesh 額外組件
     TArray<USkeletalMeshComponent*> SkelMeshes;
     GetComponents<USkeletalMeshComponent>(SkelMeshes);
     for (USkeletalMeshComponent* C : SkelMeshes) {
       if (C && C->GetFName() == VRMMeshCompName) {
-        TargetMesh = C;
-        // 修正向後傾斜：清除隊友在 BP 中設定的錯誤旋轉
-        // VRM4U 已內部處理坐標系，RelativeRotation 應為 (0,0,0)
-        C->SetRelativeRotation(FRotator::ZeroRotator);
-        if (GEngine)
-          GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
-            TEXT("[SekiroCharacter] VRMMesh found → attaching weapon to 右手首, rotation reset"));
+        if (PrimaryMesh && PrimaryMesh->GetSkeletalMeshAsset()) {
+          // GetMesh() 已有模型 → 隱藏 VRMMesh 避免重複渲染
+          C->SetVisibility(false);
+          C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        } else {
+          // GetMesh() 是空的 → 以 VRMMesh 作 fallback，同時修正傾斜
+          PrimaryMesh = C;
+          C->SetRelativeRotation(FRotator::ZeroRotator);
+          ActualSocket = VRMRightHand;
+        }
         break;
       }
     }
-    if (!TargetMesh) TargetMesh = GetMesh();
 
-    // VRMMesh 使用日文骨骼名稱；標準 UE4 Mannequin 使用 BP 設定的 WeaponSocketName
-    const FName ActualSocket = (TargetMesh != GetMesh())
-        ? FName(TEXT("\u53f3\u624b\u9996"))  // 右手首
-        : WeaponSocketName;
-
-    if (BlockWeaponPivot && TargetMesh) {
+    if (BlockWeaponPivot && PrimaryMesh) {
       BlockWeaponPivot->AttachToComponent(
-          TargetMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+          PrimaryMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
           ActualSocket);
     }
+    if (GEngine)
+      GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
+        FString::Printf(TEXT("[SekiroChar] Weapon→%s  socket=%s"),
+          PrimaryMesh ? *PrimaryMesh->GetName() : TEXT("null"),
+          *ActualSocket.ToString()));
   }
 
   // --- 動態載入武器模型 ---
