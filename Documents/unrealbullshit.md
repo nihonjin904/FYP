@@ -158,3 +158,30 @@ AI 講過的錯誤/不準確資訊，記下來以後不要再犯。
 - **根因**：GetMesh() 返回 CharacterMesh0（Mannequin），不是 VRMMesh。Mannequin 控制 root motion，旋轉它 = 整個移動方向反轉
 - **教訓**：應該旋轉 VRMMesh（純視覺 component），不是 CharacterMesh0。兩個是不同的 SkeletalMeshComponent
 
+---
+
+## 2026-04-09
+
+### 25. 每次 session 重新探索 project，沒有 project overview
+- **AI 做了**：每次開新 session，花大量 MCP calls 去「探索」project 結構（list assets、讀 random 文件），因為沒有一個固定的 project overview 文件
+- **後果**：每次問一個問題消耗 20-40% tokens，大部分用在探索而非解決問題
+- **正確做法**：建立 `project_overview.md`，每次 session 優先讀它，唔需要重新探索
+- **教訓**：AI 開新 session 第一步 = 讀 `project_overview.md`（如果存在）
+
+### 26. 探索式 MCP calls 浪費 tokens
+- **AI 做了**：用 10+ MCP calls「探索」Blueprint 結構、list assets、讀 component properties，然後才開始分析問題
+- **現實**：讀一次 `SekiroCharacter.h`（1 個 file read）就能得到整個架構，比 10 個 MCP calls 更準確
+- **後果**：用戶每次問問題消耗大量 tokens，卻沒解決問題
+- **正確做法**：
+  1. 先讀 `project_overview.md` + 相關 `.h` 文件
+  2. 搞清楚再做，最多 2-3 個 MCP calls
+  3. Editor 沒開就不要 call MCP
+- **教訓**：MCP calls 很貴，不要探索式使用
+
+### 27. 建議武器骨骼名 J_Bip_R_Hand（錯誤）
+- **AI 說**：「把武器 attach 到 VRM 骨骼 `J_Bip_R_Hand`」
+- **現實**：這個 VRM 的骨骼全部是日文名。右手骨骼 = `右手首`（從 IK Rig Hierarchy 截圖已確認）
+- **後果**：`AttachToComponent` 找不到骨骼靜默失敗，武器掉到腳下
+- **已在 #17 記錄過**，但 AI 在 2026-04-07 session 又再次建議同樣錯誤的骨骼名
+- **教訓**：骨骼名必須從 Editor IK Rig Hierarchy 確認，不要猜。已確認 = `右手首`
+

@@ -289,15 +289,15 @@ Content/
 
 | # | 問題 | 原因 | 解決方向 | 狀態 |
 |---|---|---|---|---|
-| A | 人物斜著站（身體/頭部歪） | VRM rest pose 與 Mannequin 不同，retarget 後偏差 | 先把 VRMMesh Roll 改回 0°；如仍歪則調 `RTG__魔_博麗_霊夢` | 🔧 未解決 |
-| B | 刀拿的位置不對 | WeaponMesh 掛在 Mannequin `hand_r`，Reimu 手位置不重合 | Runtime C++ re-attach 至 VRM `J_Bip_R_Hand` | 🔧 未解決 |
-| C | 擋刀（Block）動作不對 | Block animation/pivot 跟著 Mannequin 骨架，Reimu 骨架位置偏 | 同問題 B，刀位修好後一並驗證 | 🔧 未解決 |
-| D | 跑步時拿刀不對 | 同問題 B，武器 attach 點錯 | 同問題 B | 🔧 未解決 |
+| A | 人物向前傾斜站 | VRM rest pose 與 Mannequin 不同 + Retarget 偏差，Roll=0° 後仍傾 | **方法一**：Construction Script 強制 VRMMesh Pitch = -15° 補正 | 🔧 執行緊 |
+| B | 刀拿的位置不對 | WeaponPivot 掛在 Mannequin `hand_r`，Reimu 手位置不重合 | Runtime C++ re-attach 至 VRM `J_Bip_R_Hand` | ⬜ 待做 |
+| C | 擋刀（Block）動作不對 | 同 B | 同 B，刀位修好後驗證 | ⬜ 待做 |
+| D | 跑步時拿刀不對 | 同 B | 同 B | ⬜ 待做 |
 
-### 📋 行動計劃
-1. **【Editor，無需改 C++】** 打開 `BP_SekiroCharacter` → 選 VRMMesh Component → Details → 把 Rotation Roll 改為 0° → Compile → Play 測試斜站問題
-2. **【Editor，無需改 C++】** 如果仍斜，打開 `RTG__魔_博麗_霊夢`（IKRetargeter）手動調 spine/head chain mapping
-3. **【需改 C++】** 在 `SekiroCharacter.cpp` BeginPlay() 加 runtime re-attach 代碼（確認朋友分支後才動）→ rebuild → 調整武器 offset
-4. 修好後做全動作驗證：Idle / Walk / Run / Attack / Block / Dodge / Death
+### 📋 行動計劃（更新 2026-04-09）
+1. ✅ VRMMesh Rotation 已設為 (0°,0°,0°)，但仍向前傾
+2. **【Editor，無需改 C++，2分鐘】** 開 `BP_SekiroCharacter` → **Construction Script** tab → 拖 VRMMesh → 接 `Set Relative Rotation` → 設 **(X=0, Y=-15, Z=0)** → Compile → Play 測試（-10/-15/-20 逐個試）
+3. **【需改 C++，協調朋友後】** `SekiroCharacter.cpp` BeginPlay() 加 VRM re-attach 武器代碼 → 解決 B/C/D
+4. 修好後驗證：Idle / Walk / Run / Attack / Block / Death
 
-> 詳細技術分析見 `task.md`
+> 詳細分析見 `task.md`
