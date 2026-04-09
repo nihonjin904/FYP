@@ -205,58 +205,45 @@ void ASekiroCharacter::BeginPlay() {
         *GetName(), CombatComponent ? TEXT("OK") : TEXT("NULL")));
   }
 
-  // Re-attach 武器到正確的骨骼上
-  // 策略：GetMesh()優先（set_character_properties 設定的），自動偵測 VRM 骨骼名稱
+  // === 雙骨架架構 ===
+  // GetMesh() = 不可見的控制骨架（Patchouli + ABP_SekiroCharacter_Patchouli）
+  // VRMMesh   = 可見的 Reimu 外觀（ABP_reimu 透過 RetargetPoseFromMesh 從 GetMesh() 取姿勢）
   {
     static const FName VRMRightHand(TEXT("\u53f3\u624b\u9996")); // 右手首
     static const FName VRMMeshCompName(TEXT("VRMMesh"));
 
-    USkeletalMeshComponent* PrimaryMesh = GetMesh();
-    FName ActualSocket = WeaponSocketName; // 預設：hand_r (UE4 Mannequin)
+    // 預設：武器跟著 GetMesh()（控制骨架，備份）
+    USkeletalMeshComponent* WeaponTargetMesh = GetMesh();
+    FName ActualSocket = WeaponSocketName; // hand_r
 
-    // 若 GetMesh() 有 VRM 骨骼，直接用它
-    if (PrimaryMesh && PrimaryMesh->GetSkeletalMeshAsset()) {
-      if (PrimaryMesh->GetBoneIndex(VRMRightHand) != INDEX_NONE)
-        ActualSocket = VRMRightHand;
-    }
-
-    // 處理隊友加的 VRMMesh 額外組件
     TArray<USkeletalMeshComponent*> SkelMeshes;
     GetComponents<USkeletalMeshComponent>(SkelMeshes);
     for (USkeletalMeshComponent* C : SkelMeshes) {
       if (C && C->GetFName() == VRMMeshCompName) {
-        if (PrimaryMesh && PrimaryMesh->GetSkeletalMeshAsset()) {
-          // GetMesh() 已有模型 → 隱藏 VRMMesh 避免重複渲染
-          C->SetVisibility(false);
-          C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        } else {
-          // GetMesh() 是空的 → 以 VRMMesh 作 fallback，同時修正傾斜
-          PrimaryMesh = C;
-          C->SetRelativeRotation(FRotator::ZeroRotator);
-          ActualSocket = VRMRightHand;
-        }
+        // VRMMesh 找到：這是可見的 Reimu 外觀網格
+        // 1. 修正向後傾斜（隊友錯誤設定的旋轉）
+        C->SetRelativeRotation(FRotator::ZeroRotator);
+        // 2. 確保可見
+        C->SetVisibility(true, true);
+        // 3. 武器附加到 VRMMesh 的右手骨骼
+        WeaponTargetMesh = C;
+        ActualSocket = VRMRightHand;
         break;
       }
     }
 
-    if (BlockWeaponPivot && PrimaryMesh) {
+    if (BlockWeaponPivot && WeaponTargetMesh) {
       BlockWeaponPivot->AttachToComponent(
-          PrimaryMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+          WeaponTargetMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
           ActualSocket);
     }
     if (GEngine)
       GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
-        FString::Printf(TEXT("[SekiroChar] Weapon→%s  socket=%s"),
-          PrimaryMesh ? *PrimaryMesh->GetName() : TEXT("null"),
+        FString::Printf(TEXT("[SekiroChar] Weapon→%s socket=%s"),
+          WeaponTargetMesh ? *WeaponTargetMesh->GetName() : TEXT("null"),
           *ActualSocket.ToString()));
   }
-
-  // 確保 GetMesh() 可見：隊友可能把 CharacterMesh0 設為 HiddenInGame 來隱藏預設 Mannequin
-  // 現在 GetMesh() 已有 Reimu 模型，必須顯示
-  if (GetMesh() && GetMesh()->GetSkeletalMeshAsset()) {
-    GetMesh()->SetHiddenInGame(false);
-    GetMesh()->SetVisibility(true, true); // propagate to children
-  }
+  // GetMesh() 是不可見控制骨架，保持 BP 預設的隱藏狀態（不需要 SetHiddenInGame）
 
 
   if (WeaponMesh) {
