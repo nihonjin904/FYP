@@ -1,0 +1,271 @@
+============================================================
+MATERIAL DEBUG REPORT
+============================================================
+
+############################################################
+BLUEPRINT CDO: Reimu (BP_SekiroCharacter)
+Path: /Game/BP_SekiroCharacter
+############################################################
+
+============================================================
+COMPONENT: Reimu (BP_SekiroCharacter) CDO CharacterMesh0
+============================================================
+Total Material Slots: 8
+Skeletal Mesh: SK__魔_博麗_霊夢 (/Game/Characters/reimu/SK__魔_博麗_霊夢.SK__魔_博麗_霊夢)
+Mesh Material Slot Names:
+  Slot 0: 顔
+  Slot 1: 顔outline
+  Slot 2: 照れ
+  Slot 3: 髪
+  Slot 4: 髪飾り
+  Slot 5: 髪outline
+  Slot 6: 服
+  Slot 7: 肌
+
+Materials on Component:
+
+--- Slot 0 ---
+  Name: M_Reimu_Cloth
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Cloth.M_Reimu_Cloth
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 1 ---
+  Name: M_Reimu_Tere
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Tere.M_Reimu_Tere
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 2 ---
+  Name: M_Reimu_Skin
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Skin.M_Reimu_Skin
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 3 ---
+  Name: M_Reimu_Face
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Face.M_Reimu_Face
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 4 ---
+  Name: M_Reimu_Hair
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Hair.M_Reimu_Hair
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 5 ---
+  Name: M_Reimu_Hair
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Hair.M_Reimu_Hair
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 6 ---
+  Name: M_Reimu_Cloth
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Cloth.M_Reimu_Cloth
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 7 ---
+  Name: M_Reimu_Skin
+  Class: Material
+  Path: /Game/Characters/reimu/M_Reimu_Skin.M_Reimu_Skin
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+############################################################
+BLUEPRINT CDO: Patchouli (BP_SekiroEnemy)
+Path: /Game/BP_SekiroEnemy
+############################################################
+
+============================================================
+COMPONENT: Patchouli (BP_SekiroEnemy) CDO CharacterMesh0
+============================================================
+Total Material Slots: 3
+Skeletal Mesh: SK__魔王産_パチュリー・ノーレッジ (/Game/Characters/patchouli/SK__魔王産_パチュリー・ノーレッジ.SK__魔王産_パチュリー・ノーレッジ)
+Mesh Material Slot Names:
+  Slot 0: 体
+  Slot 1: 照れ
+  Slot 2: 口内
+
+Materials on Component:
+
+--- Slot 0 ---
+  Name: M_Patcho_PBR_Body
+  Class: Material
+  Path: /Game/Characters/patchouli/PBR/M_Patcho_PBR_Body.M_Patcho_PBR_Body
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Two Sided: False
+
+--- Slot 1 ---
+  Name: M_Patcho_PBR_Body
+  Class: Material
+  Path: /Game/Characters/patchouli/PBR/M_Patcho_PBR_Body.M_Patcho_PBR_Body
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Two Sided: False
+
+--- Slot 2 ---
+  Name: M_Patcho_PBR_Body
+  Class: Material
+  Path: /Game/Characters/patchouli/PBR/M_Patcho_PBR_Body.M_Patcho_PBR_Body
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Two Sided: False
+
+############################################################
+SCENE ACTOR: Patchouli Scene Actor
+Actor Name: BP_SekiroEnemy_C_0
+############################################################
+Actor Class: BP_SekiroEnemy_C
+
+============================================================
+COMPONENT: Patchouli Scene Actor > CharacterMesh0
+============================================================
+Total Material Slots: 3
+Skeletal Mesh: SK__魔王産_パチュリー・ノーレッジ (/Game/Characters/patchouli/SK__魔王産_パチュリー・ノーレッジ.SK__魔王産_パチュリー・ノーレッジ)
+Mesh Material Slot Names:
+  Slot 0: 体
+  Slot 1: 照れ
+  Slot 2: 口内
+
+Materials on Component:
+
+--- Slot 0 ---
+  Name: M_Patchouli_Lit_Body
+  Class: Material
+  Path: /Game/Characters/patchouli/M_Patchouli_Lit_Body.M_Patchouli_Lit_Body
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 1 ---
+  Name: M_Patchouli_Lit_Body
+  Class: Material
+  Path: /Game/Characters/patchouli/M_Patchouli_Lit_Body.M_Patchouli_Lit_Body
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- Slot 2 ---
+  Name: M_Patchouli_Lit_Body
+  Class: Material
+  Path: /Game/Characters/patchouli/M_Patchouli_Lit_Body.M_Patchouli_Lit_Body
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Two Sided: False
+
+--- WeaponMesh (WeaponMesh) ---
+  Slot 0: M_Patchouli_Lit_Body (/Game/Characters/patchouli/M_Patchouli_Lit_Body.M_Patchouli_Lit_Body)
+
+############################################################
+ALL REIMU ASSETS
+############################################################
+  AnimBlueprint: ABP_Post__魔_博麗_霊夢 -> /Game/Characters/reimu/ABP_Post__魔_博麗_霊夢.ABP_Post__魔_博麗_霊夢
+  AnimBlueprint: ABP_reimu -> /Game/Characters/reimu/ABP_reimu.ABP_reimu
+  AnimSequence: A_face__魔_博麗_霊夢 -> /Game/Characters/reimu/A_face__魔_博麗_霊夢.A_face__魔_博麗_霊夢
+  Blueprint: BP_reimu -> /Game/Characters/reimu/BP_reimu.BP_reimu
+  IKRigDefinition: IK_UEFN__魔_博麗_霊夢_Mannequin -> /Game/Characters/reimu/IK_UEFN__魔_博麗_霊夢_Mannequin.IK_UEFN__魔_博麗_霊夢_Mannequin
+  IKRigDefinition: IK__魔_博麗_霊夢_Mannequin -> /Game/Characters/reimu/IK__魔_博麗_霊夢_Mannequin.IK__魔_博麗_霊夢_Mannequin
+  IKRigDefinition: IK__魔_博麗_霊夢_MannequinBone -> /Game/Characters/reimu/IK__魔_博麗_霊夢_MannequinBone.IK__魔_博麗_霊夢_MannequinBone
+  IKRigDefinition: IK__魔_博麗_霊夢_VrmHumanoid -> /Game/Characters/reimu/IK__魔_博麗_霊夢_VrmHumanoid.IK__魔_博麗_霊夢_VrmHumanoid
+  MaterialInstanceConstant: MI_服 -> /Game/Characters/reimu/MI_服.MI_服
+  MaterialInstanceConstant: MI_服_Lit -> /Game/Characters/reimu/MI_服_Lit.MI_服_Lit
+  MaterialInstanceConstant: MI_服_outline -> /Game/Characters/reimu/MI_服_outline.MI_服_outline
+  MaterialInstanceConstant: MI_照れ -> /Game/Characters/reimu/MI_照れ.MI_照れ
+  MaterialInstanceConstant: MI_照れ_Lit -> /Game/Characters/reimu/MI_照れ_Lit.MI_照れ_Lit
+  MaterialInstanceConstant: MI_照れ_outline -> /Game/Characters/reimu/MI_照れ_outline.MI_照れ_outline
+  MaterialInstanceConstant: MI_肌 -> /Game/Characters/reimu/MI_肌.MI_肌
+  MaterialInstanceConstant: MI_肌_Lit -> /Game/Characters/reimu/MI_肌_Lit.MI_肌_Lit
+  MaterialInstanceConstant: MI_肌_outline -> /Game/Characters/reimu/MI_肌_outline.MI_肌_outline
+  MaterialInstanceConstant: MI_顔 -> /Game/Characters/reimu/MI_顔.MI_顔
+  MaterialInstanceConstant: MI_顔_Lit -> /Game/Characters/reimu/MI_顔_Lit.MI_顔_Lit
+  MaterialInstanceConstant: MI_顔_outline -> /Game/Characters/reimu/MI_顔_outline.MI_顔_outline
+  MaterialInstanceConstant: MI_顔outline -> /Game/Characters/reimu/MI_顔outline.MI_顔outline
+  MaterialInstanceConstant: MI_顔outline_outline -> /Game/Characters/reimu/MI_顔outline_outline.MI_顔outline_outline
+  MaterialInstanceConstant: MI_髪 -> /Game/Characters/reimu/MI_髪.MI_髪
+  MaterialInstanceConstant: MI_髪_Lit -> /Game/Characters/reimu/MI_髪_Lit.MI_髪_Lit
+  MaterialInstanceConstant: MI_髪_outline -> /Game/Characters/reimu/MI_髪_outline.MI_髪_outline
+  MaterialInstanceConstant: MI_髪outline -> /Game/Characters/reimu/MI_髪outline.MI_髪outline
+  MaterialInstanceConstant: MI_髪outline_outline -> /Game/Characters/reimu/MI_髪outline_outline.MI_髪outline_outline
+  MaterialInstanceConstant: MI_髪飾り -> /Game/Characters/reimu/MI_髪飾り.MI_髪飾り
+  MaterialInstanceConstant: MI_髪飾り_Lit -> /Game/Characters/reimu/MI_髪飾り_Lit.MI_髪飾り_Lit
+  MaterialInstanceConstant: MI_髪飾り_outline -> /Game/Characters/reimu/MI_髪飾り_outline.MI_髪飾り_outline
+  Material: M_Reimu_Cloth -> /Game/Characters/reimu/M_Reimu_Cloth.M_Reimu_Cloth
+  Material: M_Reimu_Face -> /Game/Characters/reimu/M_Reimu_Face.M_Reimu_Face
+  Material: M_Reimu_Hair -> /Game/Characters/reimu/M_Reimu_Hair.M_Reimu_Hair
+  Material: M_Reimu_Lit_Cloth -> /Game/Characters/reimu/M_Reimu_Lit_Cloth.M_Reimu_Lit_Cloth
+  Material: M_Reimu_Lit_Face -> /Game/Characters/reimu/M_Reimu_Lit_Face.M_Reimu_Lit_Face
+  Material: M_Reimu_Lit_Hair -> /Game/Characters/reimu/M_Reimu_Lit_Hair.M_Reimu_Lit_Hair
+  Material: M_Reimu_Lit_Skin -> /Game/Characters/reimu/M_Reimu_Lit_Skin.M_Reimu_Lit_Skin
+  Material: M_Reimu_Lit_Tere -> /Game/Characters/reimu/M_Reimu_Lit_Tere.M_Reimu_Lit_Tere
+  Material: M_Reimu_Skin -> /Game/Characters/reimu/M_Reimu_Skin.M_Reimu_Skin
+  Material: M_Reimu_Tere -> /Game/Characters/reimu/M_Reimu_Tere.M_Reimu_Tere
+  Material: M_Reimu_PBR_Cloth -> /Game/Characters/reimu/PBR/M_Reimu_PBR_Cloth.M_Reimu_PBR_Cloth
+  Material: M_Reimu_PBR_Face -> /Game/Characters/reimu/PBR/M_Reimu_PBR_Face.M_Reimu_PBR_Face
+  Material: M_Reimu_PBR_Hair -> /Game/Characters/reimu/PBR/M_Reimu_PBR_Hair.M_Reimu_PBR_Hair
+  Material: M_Reimu_PBR_Skin -> /Game/Characters/reimu/PBR/M_Reimu_PBR_Skin.M_Reimu_PBR_Skin
+  Material: M_Reimu_PBR_Tere -> /Game/Characters/reimu/PBR/M_Reimu_PBR_Tere.M_Reimu_PBR_Tere
+  PoseAsset: POSE_face__魔_博麗_霊夢 -> /Game/Characters/reimu/POSE_face__魔_博麗_霊夢.POSE_face__魔_博麗_霊夢
+  PoseAsset: POSE_retarget__魔_博麗_霊夢 -> /Game/Characters/reimu/POSE_retarget__魔_博麗_霊夢.POSE_retarget__魔_博麗_霊夢
+  IKRetargeter: RTG_UE4__魔_博麗_霊夢 -> /Game/Characters/reimu/RTG_UE4__魔_博麗_霊夢.RTG_UE4__魔_博麗_霊夢
+  IKRetargeter: RTG__魔_博麗_霊夢 -> /Game/Characters/reimu/RTG__魔_博麗_霊夢.RTG__魔_博麗_霊夢
+  Skeleton: SKEL__魔_博麗_霊夢 -> /Game/Characters/reimu/SKEL__魔_博麗_霊夢.SKEL__魔_博麗_霊夢
+  SkeletalMesh: SK__魔_博麗_霊夢 -> /Game/Characters/reimu/SK__魔_博麗_霊夢.SK__魔_博麗_霊夢
+  SubsurfaceProfile: SP__魔_博麗_霊夢 -> /Game/Characters/reimu/SP__魔_博麗_霊夢.SP__魔_博麗_霊夢
+  Texture2D: T_touhou_reimu_001_cloth_C -> /Game/Characters/reimu/T_touhou_reimu_001_cloth_C.T_touhou_reimu_001_cloth_C
+  Texture2D: T_touhou_reimu_001_face_C -> /Game/Characters/reimu/T_touhou_reimu_001_face_C.T_touhou_reimu_001_face_C
+  Texture2D: T_touhou_reimu_001_hair_C -> /Game/Characters/reimu/T_touhou_reimu_001_hair_C.T_touhou_reimu_001_hair_C
+  Texture2D: T_touhou_reimu_001_skin_C -> /Game/Characters/reimu/T_touhou_reimu_001_skin_C.T_touhou_reimu_001_skin_C
+  Texture2D: T_touhou_reimu_001_tere_C -> /Game/Characters/reimu/T_touhou_reimu_001_tere_C.T_touhou_reimu_001_tere_C
+  VrmAssetListObject: VA__魔_博麗_霊夢_VrmAssetList -> /Game/Characters/reimu/VA__魔_博麗_霊夢_VrmAssetList.VA__魔_博麗_霊夢_VrmAssetList
+  VrmLicenseObject: VL__魔_博麗_霊夢_VrmLicense -> /Game/Characters/reimu/VL__魔_博麗_霊夢_VrmLicense.VL__魔_博麗_霊夢_VrmLicense
+  VrmMetaObject: VM__魔_博麗_霊夢_VrmMeta -> /Game/Characters/reimu/VM__魔_博麗_霊夢_VrmMeta.VM__魔_博麗_霊夢_VrmMeta
+
+############################################################
+ALL PATCHOULI ASSETS
+############################################################
+  AnimBlueprint: ABP_Post__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/ABP_Post__魔王産_パチュリー・ノーレッジ.ABP_Post__魔王産_パチュリー・ノーレッジ
+  AnimBlueprint: ABP_patchouli -> /Game/Characters/patchouli/ABP_patchouli.ABP_patchouli
+  AnimSequence: A_face__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/A_face__魔王産_パチュリー・ノーレッジ.A_face__魔王産_パチュリー・ノーレッジ
+  Blueprint: BP_patchouli -> /Game/Characters/patchouli/BP_patchouli.BP_patchouli
+  IKRigDefinition: IK_UEFN__魔王産_パチュリー・ノーレッジ_Mannequin -> /Game/Characters/patchouli/IK_UEFN__魔王産_パチュリー・ノーレッジ_Mannequin.IK_UEFN__魔王産_パチュリー・ノーレッジ_Mannequin
+  IKRigDefinition: IK__魔王産_パチュリー・ノーレッジ_Mannequin -> /Game/Characters/patchouli/IK__魔王産_パチュリー・ノーレッジ_Mannequin.IK__魔王産_パチュリー・ノーレッジ_Mannequin
+  IKRigDefinition: IK__魔王産_パチュリー・ノーレッジ_MannequinBone -> /Game/Characters/patchouli/IK__魔王産_パチュリー・ノーレッジ_MannequinBone.IK__魔王産_パチュリー・ノーレッジ_MannequinBone
+  IKRigDefinition: IK__魔王産_パチュリー・ノーレッジ_VrmHumanoid -> /Game/Characters/patchouli/IK__魔王産_パチュリー・ノーレッジ_VrmHumanoid.IK__魔王産_パチュリー・ノーレッジ_VrmHumanoid
+  MaterialInstanceConstant: MI_体 -> /Game/Characters/patchouli/MI_体.MI_体
+  MaterialInstanceConstant: MI_体_Lit -> /Game/Characters/patchouli/MI_体_Lit.MI_体_Lit
+  MaterialInstanceConstant: MI_体_outline -> /Game/Characters/patchouli/MI_体_outline.MI_体_outline
+  MaterialInstanceConstant: MI_口内 -> /Game/Characters/patchouli/MI_口内.MI_口内
+  MaterialInstanceConstant: MI_口内_outline -> /Game/Characters/patchouli/MI_口内_outline.MI_口内_outline
+  MaterialInstanceConstant: MI_照れ -> /Game/Characters/patchouli/MI_照れ.MI_照れ
+  MaterialInstanceConstant: MI_照れ_outline -> /Game/Characters/patchouli/MI_照れ_outline.MI_照れ_outline
+  Material: M_Patchouli_Lit_Body -> /Game/Characters/patchouli/M_Patchouli_Lit_Body.M_Patchouli_Lit_Body
+  Material: M_Patcho_PBR_Body -> /Game/Characters/patchouli/PBR/M_Patcho_PBR_Body.M_Patcho_PBR_Body
+  PoseAsset: POSE_face__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/POSE_face__魔王産_パチュリー・ノーレッジ.POSE_face__魔王産_パチュリー・ノーレッジ
+  PoseAsset: POSE_retarget__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/POSE_retarget__魔王産_パチュリー・ノーレッジ.POSE_retarget__魔王産_パチュリー・ノーレッジ
+  IKRetargeter: RTG_UE4__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/RTG_UE4__魔王産_パチュリー・ノーレッジ.RTG_UE4__魔王産_パチュリー・ノーレッジ
+  IKRetargeter: RTG__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/RTG__魔王産_パチュリー・ノーレッジ.RTG__魔王産_パチュリー・ノーレッジ
+  Skeleton: SKEL__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/SKEL__魔王産_パチュリー・ノーレッジ.SKEL__魔王産_パチュリー・ノーレッジ
+  SkeletalMesh: SK__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/SK__魔王産_パチュリー・ノーレッジ.SK__魔王産_パチュリー・ノーレッジ
+  SubsurfaceProfile: SP__魔王産_パチュリー・ノーレッジ -> /Game/Characters/patchouli/SP__魔王産_パチュリー・ノーレッジ.SP__魔王産_パチュリー・ノーレッジ
+  Texture2D: T_Patchouli_C_ -> /Game/Characters/patchouli/T_Patchouli_C_.T_Patchouli_C_
+  VrmAssetListObject: VA__魔王産_パチュリー・ノーレッジ_VrmAssetList -> /Game/Characters/patchouli/VA__魔王産_パチュリー・ノーレッジ_VrmAssetList.VA__魔王産_パチュリー・ノーレッジ_VrmAssetList
+  VrmLicenseObject: VL__魔王産_パチュリー・ノーレッジ_VrmLicense -> /Game/Characters/patchouli/VL__魔王産_パチュリー・ノーレッジ_VrmLicense.VL__魔王産_パチュリー・ノーレッジ_VrmLicense
+  VrmMetaObject: VM__魔王産_パチュリー・ノーレッジ_VrmMeta -> /Game/Characters/patchouli/VM__魔王産_パチュリー・ノーレッジ_VrmMeta.VM__魔王産_パチュリー・ノーレッジ_VrmMeta

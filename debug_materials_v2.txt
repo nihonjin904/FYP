@@ -1,0 +1,611 @@
+============================================================
+DEEP MATERIAL DIAGNOSTIC v2
+============================================================
+
+############################################################
+ORIGINAL VRM MATERIALS: Reimu
+Folder: /Game/Characters/reimu/
+############################################################
+
+--- MI_服 ---
+> MaterialInstanceConstant: MI_服
+  Path: /Game/Characters/reimu/MI_服.MI_服
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_cloth_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_cloth_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_服_outline ---
+> MaterialInstanceConstant: MI_服_outline
+  Path: /Game/Characters/reimu/MI_服_outline.MI_服_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_cloth_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_cloth_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_照れ ---
+> MaterialInstanceConstant: MI_照れ
+  Path: /Game/Characters/reimu/MI_照れ.MI_照れ
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_tere_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_tere_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_照れ_outline ---
+> MaterialInstanceConstant: MI_照れ_outline
+  Path: /Game/Characters/reimu/MI_照れ_outline.MI_照れ_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_tere_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_tere_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_肌 ---
+> MaterialInstanceConstant: MI_肌
+  Path: /Game/Characters/reimu/MI_肌.MI_肌
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_skin_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_skin_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_肌_outline ---
+> MaterialInstanceConstant: MI_肌_outline
+  Path: /Game/Characters/reimu/MI_肌_outline.MI_肌_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_skin_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_skin_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_顔 ---
+> MaterialInstanceConstant: MI_顔
+  Path: /Game/Characters/reimu/MI_顔.MI_顔
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_face_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_face_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_顔_outline ---
+> MaterialInstanceConstant: MI_顔_outline
+  Path: /Game/Characters/reimu/MI_顔_outline.MI_顔_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_face_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_face_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_顔outline ---
+> MaterialInstanceConstant: MI_顔outline
+  Path: /Game/Characters/reimu/MI_顔outline.MI_顔outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_DummyWhite
+  Texture [mtoon_tex_ShadeTexture]: T_DummyWhite
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_顔outline_outline ---
+> MaterialInstanceConstant: MI_顔outline_outline
+  Path: /Game/Characters/reimu/MI_顔outline_outline.MI_顔outline_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_DummyWhite
+  Texture [mtoon_tex_ShadeTexture]: T_DummyWhite
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_髪 ---
+> MaterialInstanceConstant: MI_髪
+  Path: /Game/Characters/reimu/MI_髪.MI_髪
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_hair_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_hair_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_髪_outline ---
+> MaterialInstanceConstant: MI_髪_outline
+  Path: /Game/Characters/reimu/MI_髪_outline.MI_髪_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_hair_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_hair_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_髪outline ---
+> MaterialInstanceConstant: MI_髪outline
+  Path: /Game/Characters/reimu/MI_髪outline.MI_髪outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_DummyWhite
+  Texture [mtoon_tex_ShadeTexture]: T_DummyWhite
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_髪outline_outline ---
+> MaterialInstanceConstant: MI_髪outline_outline
+  Path: /Game/Characters/reimu/MI_髪outline_outline.MI_髪outline_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_DummyWhite
+  Texture [mtoon_tex_ShadeTexture]: T_DummyWhite
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_髪飾り ---
+> MaterialInstanceConstant: MI_髪飾り
+  Path: /Game/Characters/reimu/MI_髪飾り.MI_髪飾り
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_hair_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_hair_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_髪飾り_outline ---
+> MaterialInstanceConstant: MI_髪飾り_outline
+  Path: /Game/Characters/reimu/MI_髪飾り_outline.MI_髪飾り_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_touhou_reimu_001_hair_C
+  Texture [mtoon_tex_ShadeTexture]: T_touhou_reimu_001_hair_C
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+############################################################
+ORIGINAL VRM MATERIALS: Patchouli
+Folder: /Game/Characters/patchouli/
+############################################################
+
+--- MI_体 ---
+> MaterialInstanceConstant: MI_体
+  Path: /Game/Characters/patchouli/MI_体.MI_体
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_Patchouli_C_
+  Texture [mtoon_tex_ShadeTexture]: T_Patchouli_C_
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_体_outline ---
+> MaterialInstanceConstant: MI_体_outline
+  Path: /Game/Characters/patchouli/MI_体_outline.MI_体_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_Patchouli_C_
+  Texture [mtoon_tex_ShadeTexture]: T_Patchouli_C_
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_口内 ---
+> MaterialInstanceConstant: MI_口内
+  Path: /Game/Characters/patchouli/MI_口内.MI_口内
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_Patchouli_C_
+  Texture [mtoon_tex_ShadeTexture]: T_Patchouli_C_
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_口内_outline ---
+> MaterialInstanceConstant: MI_口内_outline
+  Path: /Game/Characters/patchouli/MI_口内_outline.MI_口内_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_Patchouli_C_
+  Texture [mtoon_tex_ShadeTexture]: T_Patchouli_C_
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_照れ ---
+> MaterialInstanceConstant: MI_照れ
+  Path: /Game/Characters/patchouli/MI_照れ.MI_照れ
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaqueTwoSided
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaqueTwoSided.MI_VrmMToonOptUnlitOpaqueTwoSided
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_Patchouli_C_
+  Texture [mtoon_tex_ShadeTexture]: T_Patchouli_C_
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+--- MI_照れ_outline ---
+> MaterialInstanceConstant: MI_照れ_outline
+  Path: /Game/Characters/patchouli/MI_照れ_outline.MI_照れ_outline
+  > MaterialInstanceConstant: MI_VrmMToonOptUnlitOutline
+    Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOutline.MI_VrmMToonOptUnlitOutline
+    > MaterialInstanceConstant: MI_VrmMToonOptUnlitOpaque
+      Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonOptUnlitOpaque.MI_VrmMToonOptUnlitOpaque
+      > MaterialInstanceConstant: MI_VrmMToonBaseLitOpaque
+        Path: /VRM4U/MaterialUtil/UE5/Material/MI_VrmMToonBaseLitOpaque.MI_VrmMToonBaseLitOpaque
+        > Material: M_VrmMToonBaseOpaque
+          Path: /VRM4U/MaterialUtil/UE5/Material/M_VrmMToonBaseOpaque.M_VrmMToonBaseOpaque
+          Blend Mode: <BlendMode.BLEND_MASKED: 1>
+          Shading Model: <MaterialShadingModel.MSM_UNLIT: 0>
+          Two Sided: False
+  Texture [gltf_tex_diffuse]: T_Patchouli_C_
+  Texture [mtoon_tex_ShadeTexture]: T_Patchouli_C_
+  Scalar [PostLightScaleMat]: 1.0
+  Scalar [bOpaque]: 0.0
+  Scalar [bDivAdaptation]: 0.0
+
+############################################################
+CURRENT CUSTOM MATERIALS: Reimu Custom
+############################################################
+
+--- M_Reimu_Cloth ---
+  Path: /Game/Characters/reimu/M_Reimu_Cloth.M_Reimu_Cloth
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: True
+
+--- M_Reimu_Face ---
+  Path: /Game/Characters/reimu/M_Reimu_Face.M_Reimu_Face
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: True
+
+--- M_Reimu_Hair ---
+  Path: /Game/Characters/reimu/M_Reimu_Hair.M_Reimu_Hair
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: True
+
+--- M_Reimu_Lit_Cloth ---
+  Path: /Game/Characters/reimu/M_Reimu_Lit_Cloth.M_Reimu_Lit_Cloth
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_Lit_Face ---
+  Path: /Game/Characters/reimu/M_Reimu_Lit_Face.M_Reimu_Lit_Face
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_Lit_Hair ---
+  Path: /Game/Characters/reimu/M_Reimu_Lit_Hair.M_Reimu_Lit_Hair
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_Lit_Skin ---
+  Path: /Game/Characters/reimu/M_Reimu_Lit_Skin.M_Reimu_Lit_Skin
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_Lit_Tere ---
+  Path: /Game/Characters/reimu/M_Reimu_Lit_Tere.M_Reimu_Lit_Tere
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_Skin ---
+  Path: /Game/Characters/reimu/M_Reimu_Skin.M_Reimu_Skin
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: True
+
+--- M_Reimu_Tere ---
+  Path: /Game/Characters/reimu/M_Reimu_Tere.M_Reimu_Tere
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: True
+
+--- M_Reimu_PBR_Cloth ---
+  Path: /Game/Characters/reimu/PBR/M_Reimu_PBR_Cloth.M_Reimu_PBR_Cloth
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_PBR_Face ---
+  Path: /Game/Characters/reimu/PBR/M_Reimu_PBR_Face.M_Reimu_PBR_Face
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_PBR_Hair ---
+  Path: /Game/Characters/reimu/PBR/M_Reimu_PBR_Hair.M_Reimu_PBR_Hair
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_PBR_Skin ---
+  Path: /Game/Characters/reimu/PBR/M_Reimu_PBR_Skin.M_Reimu_PBR_Skin
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+--- M_Reimu_PBR_Tere ---
+  Path: /Game/Characters/reimu/PBR/M_Reimu_PBR_Tere.M_Reimu_PBR_Tere
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+############################################################
+CURRENT CUSTOM MATERIALS: Patchouli Custom
+############################################################
+
+--- M_Patchouli_Lit_Body ---
+  Path: /Game/Characters/patchouli/M_Patchouli_Lit_Body.M_Patchouli_Lit_Body
+  Blend Mode: <BlendMode.BLEND_OPAQUE: 0>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: True
+
+--- M_Patcho_PBR_Body ---
+  Path: /Game/Characters/patchouli/PBR/M_Patcho_PBR_Body.M_Patcho_PBR_Body
+  Blend Mode: <BlendMode.BLEND_MASKED: 1>
+  Shading Model: <MaterialShadingModel.MSM_DEFAULT_LIT: 1>
+  Two Sided: False
+
+############################################################
+BP CDO vs ORIGINAL: Reimu (Player)
+############################################################
+
+Slot | Mesh Slot Name | Current Material | Type | Blend | Two-Sided
+------------------------------------------------------------------------------------------
+  0  | 顔              | M_Reimu_Face                             | Material   | BLEND_OPAQUE: 0> | True
+  1  | 顔outline       | M_VRM_Outline                            | Material   | BLEND_OPAQUE: 0> | False
+  2  | 照れ             | M_Reimu_Tere                             | Material   | BLEND_OPAQUE: 0> | True
+  3  | 髪              | M_Reimu_Hair                             | Material   | BLEND_OPAQUE: 0> | True
+  4  | 髪飾り            | M_Reimu_Hair                             | Material   | BLEND_OPAQUE: 0> | True
+  5  | 髪outline       | M_VRM_Outline                            | Material   | BLEND_OPAQUE: 0> | False
+  6  | 服              | M_Reimu_Cloth                            | Material   | BLEND_OPAQUE: 0> | True
+  7  | 肌              | M_Reimu_Skin                             | Material   | BLEND_OPAQUE: 0> | True
+
+  Original VRM MI mapping (by slot name):
+    Slot 0 (顔): MI_顔 -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 1 (顔outline): MI_顔outline -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 2 (照れ): MI_照れ -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 3 (髪): MI_髪 -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 4 (髪飾り): MI_髪飾り -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 5 (髪outline): MI_髪outline -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 6 (服): MI_服 -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 7 (肌): MI_肌 -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+
+############################################################
+BP CDO vs ORIGINAL: Patchouli (Enemy)
+############################################################
+
+Slot | Mesh Slot Name | Current Material | Type | Blend | Two-Sided
+------------------------------------------------------------------------------------------
+  0  | 体              | M_Patchouli_Lit_Body                     | Material   | BLEND_OPAQUE: 0> | True
+  1  | 照れ             | M_Patchouli_Lit_Body                     | Material   | BLEND_OPAQUE: 0> | True
+  2  | 口内             | M_Patchouli_Lit_Body                     | Material   | BLEND_OPAQUE: 0> | True
+
+  Original VRM MI mapping (by slot name):
+    Slot 0 (体): MI_体 -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 1 (照れ): MI_照れ -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+    Slot 2 (口内): MI_口内 -> parent: M_VrmMToonBaseOpaque | blend: BLEND_MASKED: 1> | two-sided: False
+
+############################################################
+SCENE ACTOR: Patchouli
+############################################################
+Actor: BP_SekiroEnemy_C_0 | Component: CharacterMesh0 | Slots: 3
+  Slot 0: M_Patchouli_Lit_Body (Material)
+  Slot 1: M_Patchouli_Lit_Body (Material)
+  Slot 2: M_Patchouli_Lit_Body (Material)
