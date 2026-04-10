@@ -185,3 +185,19 @@ AI 講過的錯誤/不準確資訊，記下來以後不要再犯。
 - **已在 #17 記錄過**，但 AI 在 2026-04-07 session 又再次建議同樣錯誤的骨骼名
 - **教訓**：骨骼名必須從 Editor IK Rig Hierarchy 確認，不要猜。已確認 = `右手首`
 
+---
+
+## 2026-04-10
+
+### 28. MCP set_actor_property 無法改 WorldSettings GameMode Override
+- **AI 以為**：`WorldInfo_0` 是普通 Actor，可以用 `set_actor_property` 改 `GameModeOverride`
+- **現實**：`WorldSettings` 沒有 Component（`components: []`），`set_actor_property` 需要 component，對 WorldSettings 完全無效，直接報錯
+- **後果**：浪費 1 個 MCP call，問題沒解決
+- **正確做法**：World Settings GameMode Override **必須手動在 UE Editor World Settings 面板改**
+- **教訓**：MCP 無法改 Level 的 World Settings，下次直接叫用戶手動改，不要試 MCP
+
+### 29. set_game_mode_default_pawn 改的是 Project Settings，不是 Level World Settings
+- **AI 以為**：`set_game_mode_default_pawn` 會設定當前 Level 的 World Settings → GameMode Override
+- **現實**：這個 call 設定的是 **Project Settings 的 Default GameMode**，不是 Level 的 GameMode Override
+- **後果**：Level_Environment World Settings 仍然是 None，Play 後 T-Pose + 無 HUD
+- **教訓**：Level-specific GameMode Override 只能在 World Settings 面板手動改

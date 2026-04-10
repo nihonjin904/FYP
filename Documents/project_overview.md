@@ -99,6 +99,7 @@ WeaponMesh → 子 Component of BlockWeaponPivot
 ## 🎨 Blueprint 結構
 
 ### `BP_SekiroCharacter`（主角 BP，繼承 ASekiroCharacter）
+_路徑：`/Game/BP_SekiroCharacter`（⚠️ 不是 /Game/Blueprints/）_
 
 ```
 BP_SekiroCharacter (Self)
@@ -119,6 +120,7 @@ BP_SekiroCharacter (Self)
 ```
 
 ### `BP_SekiroEnemy`（敵人 BP）
+- 路徑：`/Game/BP_SekiroEnemy`（⚠️ 不是 /Game/Blueprints/）
 - 同樣繼承 ASekiroCharacter（敵人和玩家共用同一個 C++ 類！）
 - 無 VRMMesh（只有 Mannequin mesh）
 - `bFacePlayerAsAI = true`
@@ -205,3 +207,7 @@ BP_SekiroCharacter (Self)
 | AnimTickOption=0 | = AlwaysTickPoseAndRefreshBones（正確設置） |
 | VRMMesh 位置 | attach 到 CharacterMesh0（不是 self/capsule） |
 | CharacterMesh0 Rotation | (0, -90, 0) 標準 UE5 |
+| ✅ BP_SekiroCharacter 路徑 | `/Game/BP_SekiroCharacter`（不是 /Game/Blueprints/） |
+| ✅ BP_SekiroEnemy 路徑 | `/Game/BP_SekiroEnemy`（不是 /Game/Blueprints/） |
+| ✅ Game Mode 路徑 | `/Game/BP_SekiroGameMode`（不是 BP_ThirdPersonGameMode） |
+
