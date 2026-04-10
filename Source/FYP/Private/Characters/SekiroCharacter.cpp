@@ -630,8 +630,9 @@ void ASekiroCharacter::Move(const FInputActionValue &Value) {
   if (AttributeComponent && AttributeComponent->CurrentHealth <= 0.f)
     return;
 
-  // 確保 CharacterMovement 永遠係 Walking mode，唔會被 Montage 停止
-  if (GetCharacterMovement()) {
+  // 確保 CharacterMovement 在地面時係 Walking mode，唔會被 Montage 停止
+  // ⚠️ 修復：只有在地面上才強制 Walking，空中跳躍時不覆蓋 MOVE_Falling（否則角色漂浮）
+  if (GetCharacterMovement() && GetCharacterMovement()->IsMovingOnGround()) {
     GetCharacterMovement()->SetMovementMode(MOVE_Walking);
   }
 
