@@ -73,6 +73,7 @@ ASekiroCharacter::ASekiroCharacter() {
   OverheadWidget->SetRelativeLocation(
       FVector(0.0f, 0.0f, 100.0f)); // Above head
 
+
   // Create Deathblow Widget
   DeathblowWidget =
       CreateDefaultSubobject<UWidgetComponent>(TEXT("DeathblowWidget"));
@@ -195,6 +196,33 @@ ASekiroCharacter::ASekiroCharacter() {
 void ASekiroCharacter::BeginPlay() {
   Super::BeginPlay();
 
+  // 敵人（非玩家）：runtime 載入 WBP_OVERHEAD 並顯示頭頂 HUD
+  // 玩家角色：隱藏 OverheadWidget（已有螢幕 HUD）
+  if (OverheadWidget) {
+    if (Cast<APlayerController>(GetController())) {
+      OverheadWidget->SetVisibility(false);
+      if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow,
+          FString::Printf(TEXT("[%s] OverheadWidget HIDDEN (player)"), *GetName()));
+    } else {
+      // Runtime 載入 WBP_OVERHEAD（避免 CDO 覆蓋 ConstructorHelpers 的問題）
+      UClass* WidgetCls = StaticLoadClass(
+          UUserWidget::StaticClass(), nullptr,
+          TEXT("/Game/WBP_OVERHEAD.WBP_OVERHEAD_C"));
+      if (WidgetCls) {
+        OverheadWidget->SetWidgetClass(WidgetCls);
+        OverheadWidget->InitWidget();  // 強制重新初始化 Widget
+        OverheadWidget->SetVisibility(true);
+        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green,
+            FString::Printf(TEXT("[%s] OverheadWidget SET to WBP_OVERHEAD + InitWidget OK"), *GetName()));
+      } else if (GEngine) {
+        GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+            TEXT("[SekiroChar] FAILED to load WBP_OVERHEAD!"));
+      }
+    }
+  } else if (GEngine) {
+    GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
+        FString::Printf(TEXT("[%s] OverheadWidget is NULL!"), *GetName()));
+  }
   // --- 確保 C++ 成員指針有效（BP 設定的組件在 CDO 可能丟失） ---
   if (!CombatComponent) {
     CombatComponent = FindComponentByClass<USekiroCombatComponent>();

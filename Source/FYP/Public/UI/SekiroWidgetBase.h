@@ -22,4 +22,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Sekiro|UI")
 	void UpdateEnemyHealth(float Current, float Max);
+
+protected:
+	virtual void NativeConstruct() override;
+
+private:
+	/** 自動綁定：血量變化 → 呼叫 UpdateHealth */
+	UFUNCTION()
+	void HandleHealthChanged(float NewHealth, float MaxHealth);
+
+	/** 自動綁定：架勢變化 → 呼叫 UpdateEnemyPosture */
+	UFUNCTION()
+	void HandlePostureChanged(float CurrentPosture, float MaxPosture);
 };
