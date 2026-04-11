@@ -201,3 +201,168 @@ AI 講過的錯誤/不準確資訊，記下來以後不要再犯。
 - **現實**：這個 call 設定的是 **Project Settings 的 Default GameMode**，不是 Level 的 GameMode Override
 - **後果**：Level_Environment World Settings 仍然是 None，Play 後 T-Pose + 無 HUD
 - **教訓**：Level-specific GameMode Override 只能在 World Settings 面板手動改
+
+### 30. 叫用戶用 RTG_UE4_Great_Sword_Slash 做 retarget，但這個 Retargeter 是壞的
+- **AI 說**：「Step A：右鍵 A_Great_Sword_Slash → Retarget Animations → 選 RTG_UE4_Great_Sword_Slash」
+- **現實**：RTG_UE4_Great_Sword_Slash 是 VRM4U import 時自動生成的 IKRetargeter，裡面的設定完全錯誤：
+  - Source root bone 設為 `pelvis`，但 Mixamo 骨架用的是 `Hips`
+  - Target root bone 設為 `None`（完全沒設）
+  - Root chain 找不到 `root` bone
+- **後果**：用戶花時間照做，結果 5 個 error，Export Animations 按不了
+- **教訓**：VRM4U 自動生成的 `RTG_UE4_*` 不代表能用。叫用戶做之前要先驗證 Retargeter 的 root bone 設定是否正確
+
+### 31. MCP import_animation 被 VRM4U 劫持，以為搬 FBX 就能解決
+- **AI 以為**：把 FBX 從 Content/ 搬到 Documents/ 就可以繞過 VRM4U
+- **現實**：VRM4U plugin 用 `UFactory` 全局註冊為 FBX 首選 Import Factory，不管檔案在哪個路徑，**所有 FBX import 都會先走 VRM4UImporterFactory**
+- **後果**：浪費 3 個 MCP calls + 1 次檔案複製，結果一樣失敗
+- **教訓**：VRM4U 安裝後 FBX import 走不了正常管道。要手動 import 需要先禁用 VRM4U plugin，或在 Import Options 裡手動切換 Factory
+
+### 32. 叫用戶把 Mixamo FBX import 到 UE4_Mannequin_Skeleton，但骨架根本不兼容
+- **AI 以為**：禁用 VRM4U 後手動 import FBX，選 UE4_Mannequin_Skeleton 就能成功
+- **現實**：Mixamo 骨架根骨骼是 `Hips`，UE4 Mannequin 根骨骼是 `root`。UE5 嘗試匹配時找不到 `root` track，報錯 `"Mesh contains root bone as root but animation doesn't contain the root track"`
+- **後果**：浪費用戶時間做了 3 次嘗試（boss_animation/ 名字衝突 + boss_anim_clean/ 骨架不兼容），包括禁用 VRM4U + 重啟 UE 兩次
+- **教訓**：Mixamo 和 UE4 Mannequin 骨架使用完全不同的骨骼命名（Hips/Spine/LeftArm vs root/pelvis/spine_01/upperarm_l）。**不可能直接 import Mixamo 動畫到 UE4 Mannequin Skeleton。必須走 IK Retarget。**
+
+---
+
+## 2026-04-11
+
+### 33. IK Rig 位置說錯 — 說「右鍵 → Animation → IK Rig」
+- **AI 說**：「Content Browser → 空白處右鍵 → Animation → IK Rig」
+- **現實**：UE5.5 的右鍵選單裡，Animation 主列表**沒有 IK Rig 選項**。IK Rig 和 IK Retargeter 在 Animation 選單**最下面的 "Retargeting" 子選單**裡面（需要懸停 "Retargeting >" 展開子選單才能看到）
+- **截圖確認**：用戶截圖清楚顯示 Animation 左邊面板底部有 `Advanced >` / `Control Rig >` / `Deformers >` / `Legacy >` / `Retargeting >` 這些子選單
+- **正確做法**：**右鍵 → Animation → Retargeting → IK Rig**
+- **教訓**：不同 UE 版本的選單結構差異很大。AI 用的是舊版 UE 或文檔的 UI 路徑。下次必須先確認當前版本的選單結構。
+
+### 34. 叫用戶搜 `SKEL_Great_Sword_Slash` 和 `UE4_Mannequin_Skeleton`，但前者已被刪除、後者在 Pick Skeletal Mesh 搜不到
+- **AI 說**：「Pick Skeletal Mesh 窗口 → 搜尋 SKEL_Great_Sword_Slash」「搜尋 UE4_Mannequin → 選 UE4_Mannequin_Skeleton」
+- **現實**：
+  1. `SKEL_Great_Sword_Slash` 和 `A_Great_Sword_Slash` 整個骨架和動畫已經不在項目裡了（可能之前清理時被刪掉）。MCP list_assets 確認 AnimSequence 裡沒有任何 `Great_Sword` 或 `Upward_Thrust`
+  2. IK Rig 建立時的 Pick 窗口搜的是 **Skeletal Mesh**。`UE4_Mannequin_Skeleton` 是一個 **Skeleton** 資產（骨架定義），不是 Skeletal Mesh。對應的 Skeletal Mesh 叫 `SK_Mannequin`（在 `/Game/Characters/Mannequin_UE4/Meshes/` 或 `/Game/Sword_Animations/Demo/Mannequin/Character/Mesh/`）
+- **後果**：整個方案 4 的前提崩塌 — 沒有 source 動畫就無法 retarget
+- **教訓**：告訴用戶步驟前必須先用 MCP 確認資產是否存在。不要假設之前 session 提到的資產還在。Pick Skeletal Mesh ≠ Pick Skeleton，搜名字要搜 Skeletal Mesh 的名字不是 Skeleton 的名字。
+
+### 35. 說「Mixamo 動畫已經不存在了」但其實 38 個資產全在 `/Game/boss_animation/`
+- **AI 說**：「A_Great_Sword_Slash 不存在！整個項目 516 個 AnimSequence 裡搜不到！方案 4 前提崩塌！」
+- **現實**：`A_Great_Sword_Slash` 和 `A_Upward_Thrust` 等 38 個資產全在 `/Game/boss_animation/` 裡面。AI 之前用 `list_assets(path="/Game/", asset_type="AnimSequence")` 搜，結果被 50 個上限截斷了（只搜到 Sword_Animations 包的 50 個），根本沒搜到 `/Game/boss_animation/` 的動畫。
+- **後果**：浪費用戶時間提出錯誤的方案 7（用已有劍動畫包替代），實際上原始 Mixamo 動畫一直都在。
+- **教訓**：list_assets 有 50 個上限。搜特定資產時必須指定具體路徑（如 `/Game/boss_animation/`），不要只搜 `/Game/` 然後假設搜完了。或者直接用 `does_asset_exist` 確認特定路徑。
+
+### 36. 方案 A 失敗：MCP import_animation 無法跨骨架導入
+- **AI 做了**：用 `import_animation(source_path="Great Sword Slash.fbx", skeleton_path="SK_Mannequin_Skeleton")` 試圖把 Mixamo FBX 導入到 UE4 Mannequin 骨架
+- **結果**：`Failed to import animation... Ensure the FBX contains animation data compatible with the target skeleton`
+- **原因**：Mixamo 骨骼名（Hips, Spine, LeftArm...）跟 UE4 Mannequin 骨骼名（pelvis, spine_01, upperarm_l...）完全不同，FBX importer 無法自動映射
+- **成功率預測**：AI 說 30% → 實際 0%
+- **後果**：浪費 10 秒（但零副作用，沒有建任何錯誤資產）
+- **教訓**：`import_animation` 要求骨骼名完全匹配，不會做任何自動映射。Mixamo→UE4 Mannequin 必須走 IK Retarget 路線。
+
+### 37. IK Rig 建立流程錯誤：UE5.5 不會彈出 Pick Skeletal Mesh 窗口
+- **AI 說**：「+ Add → Animation → IK Rig → IK Rig → 會彈出 Pick Skeletal Mesh 窗口 → 搜尋 SK_Great_Sword」
+- **現實**：UE5.5 直接建了一個空的 IK Rig（`IK_NewIKRig`），**沒有任何彈窗**。骨架要在打開 IK Rig 後，右邊 Details 面板的 **Preview Skeletal Mesh** 處手動指定。
+- **後果**：用戶完全找不到「搜尋欄」，因為根本沒有彈窗。
+- **教訓**：UE5.5 的 IK Rig 建立方式已改變。建立後要在 Details 面板的 `Preview Skeletal Mesh` 欄位設定骨架。web search 的文檔可能是 UE5.0-5.4 的舊流程。
+
+### 38. Mixamo 骨骼名有 `mixamorig_` 前綴
+- **AI 說**：Chain 的 Start Bone 是 `Spine`、`LeftShoulder`、`LeftUpLeg` 等
+- **現實**：VRM4U 導入的 Mixamo 骨骼全部加了 `mixamorig_` 前綴（如 `mixamorig_Spine`、`mixamorig_LeftShoulder`）。還有 `__AssimpFbx__Translation/PreRotation/Rotation` 等中間節點。
+- **後果**：用戶照著表格找不到骨骼名
+- **教訓**：VRM4U 導入的 Mixamo 骨骼名是 `mixamorig_原名`，不是純 Mixamo 名字。必須在 Hierarchy 實際確認骨骼名。
+
+### 39. Auto Create Retarget Chains 失敗
+- **AI 說**：「推薦用 Auto Create Retarget Chains，最快」
+- **現實**：UE5.5 提示 `No matching skeletal template found. Characterization skipped.`
+- **原因**：VRM4U 的骨骼命名（`mixamorig_` 前綴 + `__AssimpFbx__` 中間節點）不匹配 UE 內建的任何骨骼模板
+- **教訓**：Auto Create 只對標準骨骼模板有效（如 UE4/UE5 Mannequin）。非標準命名的骨骼必須手動建 Chain。
+
+### 40. New Retarget Chain 對話框 Start/End Bone 自動填入當前選中骨骼
+- **AI 說**：「選骨骼 → New Retarget Chain → 填 Chain Name → 改 Start/End Bone」
+- **現實**：Start Bone / End Bone 自動填了 Hierarchy 裡當前選中的骨骼（`mixamorig_RightHandThumb2`），用戶可能不知道怎麼改
+- **正確做法**：先在 Hierarchy 選好正確的 Start Bone → 再開 New Retarget Chain → Start Bone 自動正確。End Bone 的欄位應該是可點擊的下拉選單（點骨骼名字本身）。如果不行，先建 Chain，然後在 IK Retargeting 面板的表格裡改 End Bone。
+
+### 41. IK Retargeter 沒有彈出 Pick IK Rig 選擇窗口
+- **AI 說**：「建 IK Retargeter 時會彈出 Pick IK Rig To Copy Animation From 窗口」
+- **現實**：UE5.5 建完直接打開 Retargeter 編輯器，Source IKRig Asset 和 Target IKRig Asset 都是 **None**，不會自動彈出選擇
+- **正確做法**：打開 Retargeter 後，在右邊 **Details** 面板手動設定 Source IKRig Asset 和 Target IKRig Asset
+- **教訓**：不要假設 UE5.5 的 IK Retargeter 建立流程跟舊版一樣。直接在編輯器右側 Details 面板設就好。
+
+### 42. Attack.Perilous GameplayTag 未註冊 → Perilous Attack 完全不工作
+- **日期**：2026-04-11
+- **AI 說**：加了 `Attack.Perilous` tag 的 C++ 代碼就會自動生效
+- **現實**：`FGameplayTag::RequestGameplayTag(FName("Attack.Perilous"))` 報錯 `Requested Gameplay Tag Attack.Perilous was not found`，因為項目沒有 `DefaultGameplayTags.ini`，tag 從未被註冊
+- **後果**：Perilous Attack 的整個 tag 過濾機制靜默失敗，Boss 永遠不會觸發不可格擋攻擊
+- **修復**：
+  1. 建 `Config/DefaultGameplayTags.ini` 註冊 `Attack.Perilous` tag
+  2. 加 `bErrorIfNotFound = false` 參數防止 crash
+  3. **需要重啟 UE Editor** 讓新 config 生效
+- **教訓**：用 GameplayTag 前必須確認 tag 已在 `DefaultGameplayTags.ini` 或 Project Settings → GameplayTags 註冊。光寫 C++ 代碼不夠。
+
+### 43. LoadObject 在 BeginPlay 導致 Hot Reload Crash
+- **日期**：2026-04-11
+- **AI 說**：在 `BeginPlay()` 用 `LoadObject<UAnimMontage>` 加載 Montage 然後加入 TArray
+- **現實**：`~USekiroEnemyAttributeComponent()` destructor 報 `EXCEPTION_ACCESS_VIOLATION reading address 0xffffffffffffffff`，Editor 直接 crash
+- **原因**：Live Coding / Hot Reload 重載時，舊 component 的 destructor 嘗試清理 TArray 裡的指針，但 `LoadObject` 加載的物件已被 GC 回收，指針變 stale（`0xffffffffffffffff`）
+- **修復**：把 `LoadObject` 改成 `ConstructorHelpers::FObjectFinder`（在 Constructor 裡載入），UE 原生支持 Hot Reload 安全
+- **教訓**：永遠不要在 `BeginPlay` 用 `LoadObject` 載入 UObject 再存到 TArray。用 `ConstructorHelpers::FObjectFinder`（Constructor）或 `TSoftObjectPtr`（BeginPlay）。
+
+### 44. Live Coding patch DLL 殘留導致重啟後仍 Crash
+- **日期**：2026-04-11
+- **AI 說**：「關閉 UE5 重開就行」
+- **現實**：`Binaries/Win64/` 裡有 25 個 `UnrealEditor-FYP.patch_*.exe` 殘留文件。UE5 重啟時自動載入這些 patch DLL，但它們是用**舊的 class 記憶體佈局**編譯的，跟新代碼的 class 大小不同 → destructor 訪問錯位記憶體 → `EXCEPTION_ACCESS_VIOLATION`
+- **修復**：手動刪除 `Binaries/Win64/` 裡所有 `*patch*` 文件，然後重新 MSBuild
+- **教訓**：修改 header（加/刪成員變量）後，**必須刪除所有 Live Coding patch DLL**，否則重啟 Editor 仍會 crash。不能只靠「重啟」。
+
+### 46. setup_blendspace_locomotion 用了錯誤骨架的動畫，Boss 全程 T-Pose
+- **日期**：2026-04-11
+- **AI 做了**：用 `setup_blendspace_locomotion` 給 `ABP_SekiroCharacter_Patchouli` 設定 AnimGraph，但用了 **Sword_Animations 包的 UE4 Mannequin 動畫**（`Idle_Combat_Seq`、`Walk_Combat_Loop_F_0_Seq0`）
+- **現實**：Boss（Patchouli）用的是 **VRM Patchouli 骨架**（`SKEL__魔王産_パチュリー・ノーレッジ`），跟 UE4 Mannequin 骨架完全不同
+- **後果**：Boss 從 Play 開始就 T-Pose，普通攻擊和 Perilous Attack 全部沒有動畫，嚴重影響用戶測試
+- **根因**：AI 沒有先查 Boss 的 SkeletalMesh 用什麼骨架，就直接用 Sword_Animations 包裡的動畫。已有 Patchouli retarget 動畫（`Idle_Seq_Patchouli`、`Walk_Loop_F_0_Seq_Patchouli`）卻沒使用
+- **修復**：
+  1. 用正確的 Patchouli 動畫（`/Game/Idle_Seq_Patchouli`、`/Game/Walk_Loop_F_0_Seq_Patchouli`）重建 BlendSpace
+  2. 刪除 3 個 UE4 Mannequin 骨架 Perilous Montage
+  3. 用 Patchouli 骨架攻擊動畫（`Combo_Attack_04_01_Seq_Patchouli`、`Attack1_Root_Patchouli`、`Combo_Attack_03_01_Seq_Patchouli`）重建 3 個 Perilous Montage
+- **教訓**：改 AnimBP 前必須先確認角色用什麼骨架！`list_assets + AnimSequence` 搜有 `_Patchouli` 後綴的動畫就是正確的。永遠不要假設所有角色用 UE4 Mannequin。
+
+### 45. MSBuild 一直 Build 錯誤 Target（Game EXE 而不是 Editor DLL）
+- **日期**：2026-04-11
+- **AI 說**：用 MSBuild `/p:Configuration=Development /p:Platform=Win64` build 就好
+- **現實**：這個命令 build 的是 `FYP.exe`（Standalone Game），不是 `UnrealEditor-FYP.dll`（Editor Module）
+- **後果**：`UnrealEditor-FYP.dll` 日期是 4月7號 — 這幾天做的所有 C++ 修改都沒有編譯到 Editor！Editor 一直用舊 DLL + 舊 patch → crash
+- **正確命令**：`MSBuild FYP.sln /p:Configuration="Development Editor" /p:Platform=Win64`
+- **教訓**：UE5 的 MSBuild 有兩個 target：`Development`（Game）和 `Development Editor`（Editor）。開 Editor 測試必須用 `"Development Editor"`。只加 `Development` 是 build Game exe！
+
+### 47. setup_blendspace_locomotion 替換整個 AnimGraph，破壞所有動畫
+- **日期**：2026-04-11
+- **AI 做了**：用 MCP `setup_blendspace_locomotion` 給 `ABP_SekiroCharacter_Patchouli` 加 Slot 節點
+- **現實**：`setup_blendspace_locomotion` 不是「加」Slot，而是**替換整個 AnimGraph**。原來的 State Machine（包含 Idle/Walk/Block/Hit/Attack 等所有狀態和轉換規則）被完全刪除，替換成一個簡單的 `BlendSpace1D → Slot → Output`
+- **後果**：
+  1. Boss Idle 動畫消失 → T-Pose
+  2. Block/Hit React/Combo 動畫全部失效
+  3. 「危」字 UI 也消失（因為 Perilous 系統依賴的 Montage 也無法正確播放）
+  4. 跑了 3 次 setup_blendspace_locomotion 嘗試修復，每次都在覆蓋 → 越搞越糟
+- **修復**：`git checkout 75752dd -- "Content/ABP_SekiroCharacter_Patchouli.uasset"` 恢復原始 AnimBP + 重啟 UE Editor
+- **教訓**：
+  1. `setup_blendspace_locomotion` = **全替換**，不是加節點。永遠不要在已有 State Machine 的 AnimBP 上用
+  2. 要加 Slot 節點只能手動在 UE Editor AnimGraph 裡操作
+  3. 改 AnimBP 前先用 git 備份（`git stash`）或確認可以 `git checkout` 回去
+  4. **一個「加 Slot」的需求不應該觸發整個 AnimGraph 重建**
+
+### 48. setup_blendspace_locomotion 還偷偷 reparent AnimBP → UE Editor Crash
+- **日期**：2026-04-11
+- **AI 說**：git checkout 可以恢復原始 AnimBP
+- **現實**：
+  1. `setup_blendspace_locomotion` 除了替換 AnimGraph，還把 Parent Class 改成 `UEnemyAnimInstance`
+  2. UE auto-save 把壞的 AnimBP 寫入磁碟 → git 裡沒有乾淨版本
+  3. 打開 AnimGraph 時 crash：`Array index out of bounds: 2 into an array of size 2`
+- **Crash 原因**：reparent 後 C++ 類 array 結構和 Blueprint 不匹配
+- **唯一解法**：刪除壞的 AnimBP，從零重新建立
+- **教訓**：`setup_blendspace_locomotion` = 核彈級操作，永遠不要用在已有 State Machine 的 AnimBP 上
+
+### 49. 叫用戶手動加 Slot 節點但 MCP 已經加好了
+- **日期**：2026-04-11
+- **AI 說**：MCP `setup_locomotion_state_machine` 不會加 Slot 節點，需要手動加
+- **現實**：`setup_locomotion_state_machine` **已經自動加了 Slot 'DefaultSlot' 節點**
+- **AnimGraph 實際結構**：`[New State Machine] → [Slot 'DefaultSlot'] → [Output Pose]`（三個節點全部自動連好）
+- **AI 錯在哪**：我看了工具描述就假設它不加 Slot，沒有先用 `analyze_blueprint_graph` 去驗證再跟用戶說
+- **教訓**：MCP 操作後**必須先用 analyze_blueprint_graph 驗證實際結果**，再跟用戶說要不要手動做。不要靠工具描述文檔猜
+

@@ -30,6 +30,17 @@ void USekiroDeflectComponent::StopBlocking()
 
 EParryResult USekiroDeflectComponent::TryParry(FGameplayTag IncomingAttackType)
 {
+	// ===== 「避」Perilous Attack：無法格擋，必須閃避/跳躍 =====
+	static const FGameplayTag PerilousTag = FGameplayTag::RequestGameplayTag(FName("Attack.Perilous"), false);
+	if (IncomingAttackType.MatchesTag(PerilousTag))
+	{
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
+			TEXT("⚠ PERILOUS ATTACK — CANNOT BLOCK!"));
+		OnParryResult.Broadcast(EParryResult::Failed);
+		return EParryResult::Failed;
+	}
+	// ===== 原有格擋邏輯 =====
+
 	EParryResult Result = EParryResult::Blocked;
 
 	if (bIsAI)
@@ -74,8 +85,7 @@ EParryResult USekiroDeflectComponent::TryParry(FGameplayTag IncomingAttackType)
 		}
 	}
 
-	// TODO: Check if IncomingAttackType is unblockable (Perilous Attack)
-	// If unblockable, return Failed unless specific counter logic is implemented.
+	// (Perilous Attack 已在函數開頭處理 — Attack.Perilous tag → 強制 Failed)
 
 	OnParryResult.Broadcast(Result);
 	return Result;

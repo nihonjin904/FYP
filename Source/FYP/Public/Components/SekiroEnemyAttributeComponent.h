@@ -6,6 +6,10 @@
 #include "SekiroEnemyAttributeComponent.generated.h"
 
 class USekiroCombatComponent;
+class UAnimMontage;
+
+// ===== 「避」Perilous Attack Delegate =====
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPerilousAttackStarted);
 
 UCLASS( ClassGroup=(Sekiro), meta=(BlueprintSpawnableComponent) )
 class FYP_API USekiroEnemyAttributeComponent : public UActorComponent
@@ -49,6 +53,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy", meta=(ClampMin="0.1"))
 	float FacePlayerSpeed = 8.f;
 
+	// ===== 「避」Perilous Attack 設定 =====
+
+	/** Perilous 攻擊動畫（橫掃 Sweep / 突刺 Thrust） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy|Perilous")
+	TArray<UAnimMontage*> PerilousAttackMontages;
+
+	/** 每次 Combo 結束後觸發 Perilous 攻擊的機率 (0.0 = 0%, 1.0 = 100%) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy|Perilous", meta=(ClampMin="0.0", ClampMax="1.0"))
+	float PerilousAttackChance = 0.3f;
+
+	/** Perilous 攻擊的傷害倍率（相對於普通攻擊） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy|Perilous", meta=(ClampMin="0.1"))
+	float PerilousAttackDamageMultiplier = 2.0f;
+
+	/** Perilous 攻擊開始時廣播（用於觸發「避」字 UI） */
+	UPROPERTY(BlueprintAssignable, Category="Sekiro|Enemy|Perilous")
+	FOnPerilousAttackStarted OnPerilousAttackStarted;
+
 protected:
 	float TimeSinceLastAttack = 0.0f;
 
@@ -57,6 +79,16 @@ protected:
 	FTimerHandle ComboTimerHandle;
 	int32 ComboAttacksRemaining = 0;
 
+	/** 是否正在播 Perilous 攻擊動畫 */
+	bool bIsPerilousAttacking = false;
+
 	void StartComboAttackCycle();
 	void OnComboAttackTimer();
+
+	/** 嘗試觸發 Perilous 攻擊，成功返回 true */
+	bool TryPerilousAttack();
+
+	/** Perilous 攻擊動畫結束回調 */
+	UFUNCTION()
+	void OnPerilousAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 };
