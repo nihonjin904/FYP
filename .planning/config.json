@@ -1,0 +1,27 @@
+{
+    "mode": "quality",
+    "granularity": "feature",
+    "model_profile": "quality",
+    "execution": "auto",
+    "planning": {
+        "commit_docs": true,
+        "search_gitignored": false
+    },
+    "workflow": {
+        "research": true,
+        "plan_check": true,
+        "verifier": true,
+        "nyquist_validation": true,
+        "ui_phase": true,
+        "ui_safety_gate": true,
+        "research_before_questions": true,
+        "discuss_mode": "thorough",
+        "skip_discuss": false
+    },
+    "agents": {
+        "research": true,
+        "plan_check": true,
+        "verify": true
+    },
+    "git": "branch"
+}

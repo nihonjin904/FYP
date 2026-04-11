@@ -8,26 +8,30 @@ void USekiroWidgetBase::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	// 透過 WidgetComponent 找到 Owner Actor
+	// 透過 WidgetComponent 找到 Owner Actor (Fallback for World Space / other usages)
 	UWidgetComponent* WidgetComp = Cast<UWidgetComponent>(GetOuter());
 	if (!WidgetComp)
 	{
-		// 嘗試另一個方法：透過 GetTypedOuter 往上找
 		WidgetComp = GetTypedOuter<UWidgetComponent>();
 	}
-	if (!WidgetComp)
+	
+	if (WidgetComp && WidgetComp->GetOwner())
+	{
+		BindToActor(WidgetComp->GetOwner());
+	}
+	else
 	{
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Orange,
-			FString::Printf(TEXT("[SekiroWidgetBase] GetOuter()=%s — NOT a WidgetComponent, skipping"),
-				GetOuter() ? *GetOuter()->GetClass()->GetName() : TEXT("NULL")));
-		return;
+			FString::Printf(TEXT("[SekiroWidgetBase] NativeConstruct: NOT a WidgetComponent or Owner is NULL, deferring bind...")));
 	}
+}
 
-	AActor* Owner = WidgetComp->GetOwner();
+void USekiroWidgetBase::BindToActor(AActor* Owner)
+{
 	if (!Owner)
 	{
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
-			TEXT("[SekiroWidgetBase] WidgetComp found but Owner is NULL!"));
+			TEXT("[SekiroWidgetBase] BindToActor called but Owner is NULL!"));
 		return;
 	}
 

@@ -78,6 +78,15 @@ public:
 
   // ========== COMBO 系統 ==========
 
+  // ========== 特殊大招攻擊 (Boss Special Skills) ==========
+  // 存放特殊攻擊的 Montage 陣列 (Great Sword Slash, Upward Thrust 等)
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|SpecialAttack")
+  TArray<UAnimMontage *> SpecialMontages;
+
+  // 每次出招時觸發特殊大招的機率 (預設 30%)
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|SpecialAttack", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+  float SpecialAttackChance = 0.3f;
+
   // 存放 Combo 動畫 Montage（按順序）
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combo")
   TArray<UAnimMontage *> ComboMontages;

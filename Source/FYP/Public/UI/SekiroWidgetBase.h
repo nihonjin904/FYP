@@ -23,6 +23,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category="Sekiro|UI")
 	void UpdateEnemyHealth(float Current, float Max);
 
+	/** Expose a bind function since Screen Space widgets cannot find Owner implicitly */
+	UFUNCTION(BlueprintCallable, Category="Sekiro|UI")
+	void BindToActor(AActor* InOwner);
+
 protected:
 	virtual void NativeConstruct() override;
 

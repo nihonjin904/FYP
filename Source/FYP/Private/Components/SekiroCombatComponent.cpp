@@ -36,7 +36,41 @@ void USekiroCombatComponent::RequestAttack() {
       return;
 
     // 情況 1：沒有在攻擊中 - 開始第一段攻擊
+    bool bIsValidCombo0 = (ComboMontages.IsValidIndex(0) && ComboMontages[0] != nullptr);
+    SpecialAttackChance = 1.0f; // 強制 100% 發動機率，供驗證大招動畫
+    
+    if (GEngine) {
+        GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, FString::Printf(TEXT("RequestAttack Pointers: IsAtk=%d, Cmb0_Valid=%d, SpclM=%d, SpclChance=%.2f"), bIsAttacking, bIsValidCombo0, SpecialMontages.Num(), SpecialAttackChance));
+    }
+
     if (!bIsAttacking) {
+      
+      // --- BOSS RNG OVERRIDE (30%預設機率觸發獨立大招) ---
+      if (SpecialMontages.Num() > 0 && FMath::FRand() <= SpecialAttackChance) {
+        bIsAttacking = true;
+        ComboIndex = 0; // 重置一般連擊計數器
+        bCanCombo = false;
+        bComboQueued = false;
+
+        LastComboActionTime = GetWorld()->GetTimeSeconds();
+        OnAttackStarted.Broadcast();
+
+        int32 RandomIndex = FMath::RandRange(0, SpecialMontages.Num() - 1);
+        float Duration = AnimInstance->Montage_Play(SpecialMontages[RandomIndex]);
+
+        if (Duration <= 0.0f) {
+          bIsAttacking = false;
+          return;
+        }
+
+        FOnMontageEnded EndDelegate;
+        EndDelegate.BindUObject(this, &USekiroCombatComponent::OnMontageEnded);
+        AnimInstance->Montage_SetEndDelegate(EndDelegate, SpecialMontages[RandomIndex]);
+        
+        return; // 直接搶斷，終止下方 ComboMontages 執行
+      }
+      // --- END BOSS RNG OVERRIDE ---
+
       if (ComboMontages.IsValidIndex(0) && ComboMontages[0]) {
         bIsAttacking = true;
         ComboIndex = 0;

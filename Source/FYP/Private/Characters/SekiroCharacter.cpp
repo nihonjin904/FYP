@@ -23,6 +23,7 @@
 #include "InputMappingContext.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/SekiroGameHUDWidget.h"
+#include "UI/SekiroWidgetBase.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Particles/ParticleSystem.h"
@@ -68,7 +69,8 @@ ASekiroCharacter::ASekiroCharacter() {
   OverheadWidget =
       CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
   OverheadWidget->SetupAttachment(RootComponent);
-  OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
+  OverheadWidget->SetWidgetSpace(EWidgetSpace::World);
+  OverheadWidget->SetRelativeScale3D(FVector(0.05f, 0.05f, 0.05f));
   OverheadWidget->SetDrawAtDesiredSize(true);
   OverheadWidget->SetRelativeLocation(
       FVector(0.0f, 0.0f, 100.0f)); // Above head
@@ -78,7 +80,8 @@ ASekiroCharacter::ASekiroCharacter() {
   DeathblowWidget =
       CreateDefaultSubobject<UWidgetComponent>(TEXT("DeathblowWidget"));
   DeathblowWidget->SetupAttachment(RootComponent);
-  DeathblowWidget->SetWidgetSpace(EWidgetSpace::Screen);
+  DeathblowWidget->SetWidgetSpace(EWidgetSpace::World);
+  DeathblowWidget->SetRelativeScale3D(FVector(0.05f, 0.05f, 0.05f));
   DeathblowWidget->SetDrawAtDesiredSize(true);
   DeathblowWidget->SetVisibility(false); // Hidden by default
   DeathblowWidget->SetRelativeLocation(
@@ -214,6 +217,13 @@ void ASekiroCharacter::BeginPlay() {
         OverheadWidget->SetVisibility(true);
         if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green,
             FString::Printf(TEXT("[%s] OverheadWidget SET to WBP_OVERHEAD + InitWidget OK"), *GetName()));
+
+        // --- MANUALLY BIND TO ACTOR ---
+        if (USekiroWidgetBase* SekiroUI = Cast<USekiroWidgetBase>(OverheadWidget->GetUserWidgetObject())) {
+            SekiroUI->BindToActor(this);
+        } else if (GEngine) {
+            GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("[SekiroChar] Failed to cast UserWidgetObject to USekiroWidgetBase!"));
+        }
       } else if (GEngine) {
         GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red,
             TEXT("[SekiroChar] FAILED to load WBP_OVERHEAD!"));
@@ -349,6 +359,22 @@ void ASekiroCharacter::BeginPlay() {
           FString::Printf(TEXT("Auto-loaded %d ComboMontages (%s)"),
             CombatComponent->ComboMontages.Num(),
             bIsReimuSkeleton ? TEXT("Reimu") : TEXT("Patchouli")));
+    }
+
+    // --- 自動填充 SpecialMontages (僅限敵人) ---
+    if (!bIsReimuSkeleton && CombatComponent->SpecialMontages.Num() == 0) {
+      UAnimMontage* SlashM = Cast<UAnimMontage>(
+        StaticLoadObject(UAnimMontage::StaticClass(), nullptr, TEXT("/Game/boss_anim_retarget/AM_Perilous_Slash_Patchouli.AM_Perilous_Slash_Patchouli")));
+      UAnimMontage* ThrustM = Cast<UAnimMontage>(
+        StaticLoadObject(UAnimMontage::StaticClass(), nullptr, TEXT("/Game/boss_anim_retarget/AM_Perilous_Thrust_Patchouli.AM_Perilous_Thrust_Patchouli")));
+      
+      if (SlashM) CombatComponent->SpecialMontages.Add(SlashM);
+      if (ThrustM) CombatComponent->SpecialMontages.Add(ThrustM);
+
+      if (GEngine && CombatComponent->SpecialMontages.Num() > 0) {
+        GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Magenta,
+          FString::Printf(TEXT("Auto-loaded %d SpecialMontages (Boss)"), CombatComponent->SpecialMontages.Num()));
+      }
     }
   }
 
