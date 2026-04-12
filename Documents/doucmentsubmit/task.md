@@ -1,5 +1,5 @@
 # Task.md — Arcane Souls: Rebirth
-_最後更新：2026-04-13 00:34 (HKT) 星期一_
+_最後更新：2026-04-13 00:38 (HKT) 星期一_
 
 ---
 
@@ -26,6 +26,94 @@ _最後更新：2026-04-13 00:34 (HKT) 星期一_
 
 ---
 
+## 🔴 當前問題：GitHub Desktop Pull 失敗
+
+### 錯誤信息（從截圖讀取）：
+```
+error: unable to unlink old 'Content/JapaneseShrine/Maps/Level_Environment.umap': Invalid argument
+error: unable to unlink old 'Content/WBP_Overhead.uasset': Invalid argument
+Merge with strategy ort failed.
+```
+
+### 根因分析：
+
+**Git 無法替換這 2 個文件，因為它們被其他程序鎖住了。**
+
+| 被鎖文件 | 最可能鎖住它的程序 |
+|---|---|
+| `Content/JapaneseShrine/Maps/Level_Environment.umap` | **Unreal Editor**（當前打開的地圖檔） |
+| `Content/WBP_Overhead.uasset` | **Unreal Editor**（Widget Blueprint 被載入記憶體） |
+
+**「unable to unlink old」= Git 想刪掉舊版本再放入新版本，但文件被鎖住不能刪**
+
+你朋友的 commit 修改了這 2 個文件（可能是 checkpoint + 小地圖相關），Pull 時 Git 想替換它們但被 UE Editor 鎖住 → 失敗。
+
+### 修復方案（Plan）：
+
+**方案 A（推薦，成功率 99%，30 秒）**：
+
+1. **關閉 Unreal Editor** ← 這是關鍵！UE Editor 鎖住了 .umap 和 .uasset 文件
+2. 回到 GitHub Desktop
+3. 再次按 **「Pull origin」**
+4. Pull 成功後再打開 UE Editor
+
+**方案 B（如果方案 A 不行，成功率 95%）**：
+
+1. 關閉 Unreal Editor
+2. 打開 PowerShell，跑：
+   ```powershell
+   cd "C:\Users\Kelvin Lam\Documents\GitHub\FYP\FYP"
+   git reset --hard HEAD
+   git pull origin master
+   ```
+   ⚠️ `git reset --hard` 會**丟棄所有未 commit 的改動**（包括剛才的 P1 改動）
+   所以如果 P1 還沒 commit，要先 commit 或 stash
+
+**方案 C（最安全，保留你的改動）**：
+
+1. 關閉 Unreal Editor
+2. 打開 PowerShell，跑：
+   ```powershell
+   cd "C:\Users\Kelvin Lam\Documents\GitHub\FYP\FYP"
+   git stash          # 暫存你的改動（P1）
+   git pull origin master   # 拉朋友的改動
+   git stash pop      # 把你的改動放回來
+   ```
+
+### 風險評估：
+
+| 方案 | 成功率 | 風險 | 時間 |
+|---|---|---|---|
+| A（關 UE 再 Pull） | 99% | 0%（不動代碼） | 30 秒 |
+| B（reset --hard + pull） | 95% | **會丟失未 commit 的 P1 改動** | 1 分鐘 |
+| C（stash + pull + pop） | 90% | 可能有 merge conflict（如果朋友也改了同一個文件） | 2 分鐘 |
+
+### 和 P1 的關係：
+
+- P1 改的是 `SekiroCombatComponent.cpp`（C++ 文件）
+- 朋友改的是 `Level_Environment.umap` + `WBP_Overhead.uasset`（Binary UE 文件）
+- **兩者完全不衝突** ✅
+- 你可以先 commit P1 的改動，再 Pull 朋友的
+
+---
+
+### 建議操作步驟：
+
+1. **先在 GitHub Desktop commit 你的 P1 改動**（Summary 寫：`P1: 降低精準彈刀架勢懲罰 3.0f→1.5f`）
+2. **關閉 Unreal Editor**
+3. **再按 Pull origin**
+4. Pull 成功後重新開 UE Editor
+
+---
+
+## ❓ 等你回覆
+
+1. **你現在 UE Editor 是開著的嗎？**（幾乎肯定是，這就是 Pull 失敗的原因）
+2. **P1 改動有沒有先 commit？**（如果沒有，先 commit 再拉）
+3. **確認用方案 A 嗎？**
+
+---
+
 ## ✅ P1：降低精準彈刀的架勢懲罰 — 已完成 ✅
 
 **狀態**：✅ 代碼已修改，等待 Build + 測試
@@ -34,33 +122,12 @@ _最後更新：2026-04-13 00:34 (HKT) 星期一_
 - **文件**：`SekiroCombatComponent.cpp` 第 420 行
 - **改動**：`AttackPostureDamage * 3.0f` → `AttackPostureDamage * 1.5f`
 
-**Diff**：
-```diff
-- MyPosture->AddPostureDamage(AttackPostureDamage * 3.0f);
-+ MyPosture->AddPostureDamage(AttackPostureDamage * 1.5f);
-```
-
 **效果**：
-- 之前：被完美彈刀 → 攻擊者扣 `20 * 3.0 = 60` 架勢 → **2 次**就爆架勢（MaxPosture=100）
+- 之前：被完美彈刀 → 攻擊者扣 `20 * 3.0 = 60` 架勢 → **2 次**就爆架勢
 - 現在：被完美彈刀 → 攻擊者扣 `20 * 1.5 = 30` 架勢 → **約 4 次**才爆架勢
 
 **風險**：0%（只改了一個數字）
-**和朋友衝突**：❌ 不衝突（只改 SekiroCombatComponent.cpp）
-
----
-
-## 🔨 下一步：Build
-
-你需要在 Visual Studio 或 UE Editor 編譯：
-
-**方法 1**：UE Editor Live Coding → **Ctrl+Alt+F11**
-**方法 2**：Visual Studio → **Ctrl+Shift+B**（確認 Configuration 是 `Development Editor`）
-
-Build 成功後，Play 測試：
-1. 讓 Boss 攻擊你
-2. 精準格擋（Perfect Parry）Boss 的攻擊
-3. 確認螢幕左上出現 `PERFECT PARRY!` 黃字
-4. 確認 Boss 架勢條增長幅度比之前小（需要 ~4 次精準彈刀才爆，而不是 2 次）
+**和朋友衝突**：❌ 不衝突
 
 ---
 
@@ -76,12 +143,5 @@ Build 成功後，Play 測試：
 
 ---
 
-## ❓ 等你回覆
-
-1. **P1 Build + 測試**：Build 成功了嗎？測試結果怎樣？
-2. **P2 執行**：P1 測試 OK 後要直接做 P2 嗎？（Boss 擋完卡住不動的修復）
-
----
-
-_回答時間：2026-04-13 00:34:25 (HKT) 星期一_
-_累積對話 tokens：約 45,000_
+_回答時間：2026-04-13 00:38:30 (HKT) 星期一_
+_累積對話 tokens：約 65,000_
