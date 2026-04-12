@@ -22,6 +22,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "Kismet/GameplayStatics.h"
+#include "Blueprint/UserWidget.h"
 #include "UI/SekiroGameHUDWidget.h"
 #include "UI/SekiroWidgetBase.h"
 #include "NiagaraFunctionLibrary.h"
@@ -658,6 +659,133 @@ void ASekiroCharacter::SetupPlayerInputComponent(
     // Attacking
     EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started,
                                        this, &ASekiroCharacter::Attack);
+
+    // --- Vibe Coding: Dynamic Checkpoint Intercept ---
+    FInputKeyBinding FKeyBinding(FInputChord(EKeys::F), IE_Pressed);
+    FKeyBinding.bExecuteWhenPaused = true;
+    FKeyBinding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        if (APlayerController* PC = Cast<APlayerController>(this->GetController())) {
+            if (PC->IsPaused()) {
+                // If paused, assume we are in the menu. Close it!
+                for (TObjectIterator<UUserWidget> It; It; ++It) {
+                    if (It->GetWorld() == this->GetWorld() && It->GetName().Contains(TEXT("WBP_UpgradeMenu"))) {
+                        It->RemoveFromParent();
+                    }
+                }
+                PC->SetPause(false);
+                PC->bShowMouseCursor = false;
+                FInputModeGameOnly GameMode;
+                PC->SetInputMode(GameMode);
+                PC->SetViewTargetWithBlend(this, 0.5f);
+                if (GEngine) GEngine->AddOnScreenDebugMessage(1337, 0.0f, FColor::Cyan, TEXT("")); // Clear HUD
+                return;
+            }
+            
+            TArray<AActor*> OverlappingActors;
+            this->GetOverlappingActors(OverlappingActors);
+            for (AActor* OverlappingActor : OverlappingActors) {
+                if (OverlappingActor->GetName().Contains(TEXT("Checkpoint"))) {
+                    if (UClass* WidgetClass = StaticLoadClass(UUserWidget::StaticClass(), nullptr, TEXT("/Game/Blueprints/UI/WBP_UpgradeMenu.WBP_UpgradeMenu_C"))) {
+                        if (UUserWidget* UpgradeMenu = CreateWidget<UUserWidget>(this->GetWorld(), WidgetClass)) {
+                            UpgradeMenu->AddToViewport(9999);
+                            PC->bShowMouseCursor = true;
+                            
+                            FInputModeGameAndUI InputMode;
+                            InputMode.SetWidgetToFocus(UpgradeMenu->TakeWidget());
+                            InputMode.SetHideCursorDuringCapture(false);
+                            PC->SetInputMode(InputMode);
+                            
+                            PC->SetViewTargetWithBlend(OverlappingActor, 0.5f);
+                            PC->SetPause(true);
+
+                            // Draw Stats HUD
+                            if (GEngine) {
+                                FString StatsStr = TEXT("\n=== CURRENT STATS ===");
+                                if (this->AttributeComponent) StatsStr += FString::Printf(TEXT("\n[1] Health: %.0f / %.0f"), this->AttributeComponent->CurrentHealth, this->AttributeComponent->MaxHealth);
+                                if (this->CombatComponent) StatsStr += FString::Printf(TEXT("\n[2] Attack Power: %.0f"), this->CombatComponent->AttackPostureDamage);
+                                if (this->PostureComponent) StatsStr += FString::Printf(TEXT("\n[3] Max Posture: %.0f"), this->PostureComponent->MaxPosture);
+                                StatsStr += TEXT("\n=====================\nPress 1, 2, or 3 to Upgrade.\nPress F to Close.");
+                                GEngine->AddOnScreenDebugMessage(1337, 9999.f, FColor::Cyan, StatsStr, true, FVector2D(1.5f, 1.5f));
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    });
+    PlayerInputComponent->KeyBindings.Add(FKeyBinding);
+
+    // --- Vibe Coding: Keyboard Upgrade Shortcuts for UI Bypass ---
+    FInputKeyBinding Key1Binding(FInputChord(EKeys::One), IE_Pressed);
+    Key1Binding.bExecuteWhenPaused = true;
+    Key1Binding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        if (APlayerController* PC = Cast<APlayerController>(this->GetController())) {
+            if (PC->IsPaused() && this->AttributeComponent) {
+                this->AttributeComponent->MaxHealth += 50.0f;
+                this->AttributeComponent->CurrentHealth = this->AttributeComponent->MaxHealth;
+                this->AttributeComponent->OnHealthChanged.Broadcast(this->AttributeComponent->CurrentHealth, this->AttributeComponent->MaxHealth);
+                if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("Upgraded Health! (Keyboard 1)"));
+
+                // Refresh HUD
+                if (GEngine) {
+                    FString StatsStr = TEXT("\n=== CURRENT STATS ===");
+                    StatsStr += FString::Printf(TEXT("\n[1] Health: %.0f / %.0f"), this->AttributeComponent->CurrentHealth, this->AttributeComponent->MaxHealth);
+                    if (this->CombatComponent) StatsStr += FString::Printf(TEXT("\n[2] Attack Power: %.0f"), this->CombatComponent->AttackPostureDamage);
+                    if (this->PostureComponent) StatsStr += FString::Printf(TEXT("\n[3] Max Posture: %.0f"), this->PostureComponent->MaxPosture);
+                    StatsStr += TEXT("\n=====================\nPress 1, 2, or 3 to Upgrade.\nPress F to Close.");
+                    GEngine->AddOnScreenDebugMessage(1337, 9999.f, FColor::Cyan, StatsStr, true, FVector2D(1.5f, 1.5f));
+                }
+            }
+        }
+    });
+    PlayerInputComponent->KeyBindings.Add(Key1Binding);
+
+    FInputKeyBinding Key2Binding(FInputChord(EKeys::Two), IE_Pressed);
+    Key2Binding.bExecuteWhenPaused = true;
+    Key2Binding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        if (APlayerController* PC = Cast<APlayerController>(this->GetController())) {
+            if (PC->IsPaused() && this->CombatComponent) {
+                this->CombatComponent->AttackPostureDamage += 10.0f;
+                if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Upgraded Attack! (Keyboard 2)"));
+
+                // Refresh HUD
+                if (GEngine) {
+                    FString StatsStr = TEXT("\n=== CURRENT STATS ===");
+                    if (this->AttributeComponent) StatsStr += FString::Printf(TEXT("\n[1] Health: %.0f / %.0f"), this->AttributeComponent->CurrentHealth, this->AttributeComponent->MaxHealth);
+                    StatsStr += FString::Printf(TEXT("\n[2] Attack Power: %.0f"), this->CombatComponent->AttackPostureDamage);
+                    if (this->PostureComponent) StatsStr += FString::Printf(TEXT("\n[3] Max Posture: %.0f"), this->PostureComponent->MaxPosture);
+                    StatsStr += TEXT("\n=====================\nPress 1, 2, or 3 to Upgrade.\nPress F to Close.");
+                    GEngine->AddOnScreenDebugMessage(1337, 9999.f, FColor::Cyan, StatsStr, true, FVector2D(1.5f, 1.5f));
+                }
+            }
+        }
+    });
+    PlayerInputComponent->KeyBindings.Add(Key2Binding);
+
+    FInputKeyBinding Key3Binding(FInputChord(EKeys::Three), IE_Pressed);
+    Key3Binding.bExecuteWhenPaused = true;
+    Key3Binding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        if (APlayerController* PC = Cast<APlayerController>(this->GetController())) {
+            if (PC->IsPaused() && this->PostureComponent) {
+                this->PostureComponent->MaxPosture += 50.0f;
+                this->PostureComponent->OnPostureChanged.Broadcast(this->PostureComponent->CurrentPosture, this->PostureComponent->MaxPosture);
+                if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Blue, TEXT("Upgraded Posture! (Keyboard 3)"));
+
+                // Refresh HUD
+                if (GEngine) {
+                    FString StatsStr = TEXT("\n=== CURRENT STATS ===");
+                    if (this->AttributeComponent) StatsStr += FString::Printf(TEXT("\n[1] Health: %.0f / %.0f"), this->AttributeComponent->CurrentHealth, this->AttributeComponent->MaxHealth);
+                    if (this->CombatComponent) StatsStr += FString::Printf(TEXT("\n[2] Attack Power: %.0f"), this->CombatComponent->AttackPostureDamage);
+                    StatsStr += FString::Printf(TEXT("\n[3] Max Posture: %.0f"), this->PostureComponent->MaxPosture);
+                    StatsStr += TEXT("\n=====================\nPress 1, 2, or 3 to Upgrade.\nPress F to Close.");
+                    GEngine->AddOnScreenDebugMessage(1337, 9999.f, FColor::Cyan, StatsStr, true, FVector2D(1.5f, 1.5f));
+                }
+            }
+        }
+    });
+    PlayerInputComponent->KeyBindings.Add(Key3Binding);
+    // --------------------------------------------------
 
     // Execution
     EnhancedInputComponent->BindAction(ExecutionAction, ETriggerEvent::Started,
