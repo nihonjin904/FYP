@@ -1,105 +1,87 @@
 # Task.md — Arcane Souls: Rebirth
-_最後更新：2026-04-12 23:32 (HKT) 星期日_
+_最後更新：2026-04-13 00:34 (HKT) 星期一_
 
 ---
 
 > ## 🔴 AI 必讀規則 🔴
-> 你每次要查看 project_overview.md unrealbullshit.md 每次都要實時更新
-> 每次回答我要在 task.md 裡面回答我 並且更新
+> 你每次要查看 `project_overview.md` `unrealbullshit.md` 每次都要實時更新
+> 每次回答我要在 `task.md` 裡面回答我 並且更新
 > 請你不要在chat對話裡面和我說 要直接在task.md 裡面全部回答我
+> 我操你媽的 你task.md 完全沒有更新 還是舊的數據和對話和回答
+> 然後model 有些是 日文名字 這個部分 請你小心
 > 請先查清楚問題 / 先plan 讓我批准先
-> MCP 操作後必須用 analyze_blueprint_graph 驗證
 > **用戶說「讓我批准先」= 必須等用戶明確在對話中說「批准」或「做」才能執行**
 > **model 有些是日文名字，小心**
 
 ---
 
-## ✅ 已完成
+> ## ⚠️ 朋友工作範圍（不可衝突）
+> 朋友正在做：
+> 1. **Checkpoint 左上角 UI 小地圖**
+> 2. **Checkpoint 傳送功能**
+> 
+> 我們改的範圍：`SekiroCombatComponent.cpp/h`、`SekiroEnemyAttributeComponent.cpp/h`、`SekiroDeflectComponent.cpp/h`
+> 朋友可能改的範圍：`SekiroCharacter.cpp/h`（Input 綁定、UI 部分）
+> **結論：P1-P4 全部改 Component 文件，✅ 不衝突。P5 Dodge 需要改 SekiroCharacter.cpp，⚠️ 可能衝突。**
 
-### 火花調大 — 已編譯通過 ✅
+---
 
+## ✅ P1：降低精準彈刀的架勢懲罰 — 已完成 ✅
+
+**狀態**：✅ 代碼已修改，等待 Build + 測試
+
+**改了什麼**：
+- **文件**：`SekiroCombatComponent.cpp` 第 420 行
+- **改動**：`AttackPostureDamage * 3.0f` → `AttackPostureDamage * 1.5f`
+
+**Diff**：
 ```diff
-# SekiroCombatComponent.cpp
-Perfect Parry 火花：FVector(2.5f) → FVector(6.0f)
-Block 火花：FVector(1.5f) → FVector(4.0f)
+- MyPosture->AddPostureDamage(AttackPostureDamage * 3.0f);
++ MyPosture->AddPostureDamage(AttackPostureDamage * 1.5f);
 ```
 
----
+**效果**：
+- 之前：被完美彈刀 → 攻擊者扣 `20 * 3.0 = 60` 架勢 → **2 次**就爆架勢（MaxPosture=100）
+- 現在：被完美彈刀 → 攻擊者扣 `20 * 1.5 = 30` 架勢 → **約 4 次**才爆架勢
 
-## 🔴 新發現：Boss 格擋率太低！
-
-### 你截圖裡看到的實際值
-
-| 屬性 | Blueprint 實際值 | 我改的 C++ 預設值 | 差異 |
-|---|---|---|---|
-| Block Probability | **0.3** | 0.55 | ❌ Blueprint 覆蓋了 C++ |
-| Deflect Probability | **0.05** | 0.35 | ❌ Blueprint 覆蓋了 C++ |
-| **總格擋率** | **35%** | 90% | ❌ 太低！65% 攻擊直接砍到 Boss |
-
-### 為什麼會這樣？
-
-我改的是 **C++ 預設值**（.h 文件），但 `BP_SekiroEnemy` Blueprint 裡面已經**序列化**(serialized)了舊的值（0.3 和 0.05）。Blueprint 的值**永遠覆蓋 C++ 預設值**。
-
-這就是你說「Boss 沒有擋刀」的原因 — 只有 35% 格擋率，大部分攻擊都直接砍到了。
-
-### 修復方法（不需要改代碼）
-
-**直接在 Blueprint 面板改數值** — 你剛才的截圖位置就是：
-
-1. 打開 `BP_SekiroEnemy` → Components → 點擊 **Deflect Component**
-2. 右邊 Details 面板 → **Sekiro > AI**
-3. 把 `Block Probability` 改成 **0.55**
-4. 把 `Deflect Probability` 改成 **0.35**
-5. 左上角 **Compile** → **Save**
-
-改完後格擋率 = 0.55 + 0.35 = **90%**
-
-| 改前 | 改後 |
-|---|---|
-| Block: 0.3 → 30% 普通格擋 | Block: 0.55 → 55% 普通格擋 |
-| Deflect: 0.05 → 5% 彈刀 | Deflect: 0.35 → 35% 彈刀 |
-| 總格擋: 35% | 總格擋: **90%** ✅ |
-| 被砍到: 65% | 被砍到: 10% |
-
-### 風險
-- 🟢 零風險（只是改 Blueprint 數值，不改代碼）
-- ❌ 不和朋友衝突
-- ⚠️ 如果 90% 太高可以調低，這些數值隨時能改
+**風險**：0%（只改了一個數字）
+**和朋友衝突**：❌ 不衝突（只改 SekiroCombatComponent.cpp）
 
 ---
 
-## 📋 你現在要做的步驟
+## 🔨 下一步：Build
 
-### Step 1：改 Blueprint 格擋率（5 秒）
-1. `BP_SekiroEnemy` → Components → **Deflect Component (DeflectComponent)**
-2. Details → Sekiro > AI
-3. `Block Probability` → 改成 **0.55**
-4. `Deflect Probability` → 改成 **0.35**
-5. 左上角 **Compile** 按鈕 → 再按 **Save** 按鈕
+你需要在 Visual Studio 或 UE Editor 編譯：
 
-### Step 2：重啟 UE Editor（因為改了 .cpp）
-- 關掉 UE Editor
-- 重新打開（或者刪 `Binaries/Win64/*patch*` 後重開）
+**方法 1**：UE Editor Live Coding → **Ctrl+Alt+F11**
+**方法 2**：Visual Studio → **Ctrl+Shift+B**（確認 Configuration 是 `Development Editor`）
 
-### Step 3：進遊戲測試
-- 鎖定 Boss → 連續普通攻擊
-- 預期效果：
-  - 90% 攻擊被擋 → 看到「PERFECT PARRY!」或「Blocked!」+ **大火花** + 音效
-  - Boss 格擋後 0.3-0.7 秒自動反擊
-  - 只有 10% 攻擊砍到 Boss
+Build 成功後，Play 測試：
+1. 讓 Boss 攻擊你
+2. 精準格擋（Perfect Parry）Boss 的攻擊
+3. 確認螢幕左上出現 `PERFECT PARRY!` 黃字
+4. 確認 Boss 架勢條增長幅度比之前小（需要 ~4 次精準彈刀才爆，而不是 2 次）
 
 ---
 
-## 📊 全部已改動的文件
+## 📋 剩餘 Plan（等你批准後再做）
 
-| 文件 | 改了什麼 | 狀態 |
-|---|---|---|
-| `SekiroDeflectComponent.h` | 預設值 0.55/0.35（但被 BP 覆蓋） | ✅ 已編譯 |
-| `SekiroCombatComponent.cpp` | 対刀邏輯 + 火花 6.0f/4.0f | ✅ 已編譯 |
-| `SekiroCharacter.cpp` | **沒改** | ✅ 安全 |
-| `BP_SekiroEnemy` | **你手動改**格擋率 | ⏳ 等你做 |
+| 優先級 | 問題 | 改動文件 | 和朋友衝突？ | 狀態 |
+|---|---|---|---|---|
+| ~~P1~~ | ~~精準彈刀扣太多架勢 (3.0f→1.5f)~~ | ~~SekiroCombatComponent.cpp~~ | ❌ | ✅ 已完成 |
+| P2 | Boss 擋完卡住不動 | SekiroCombatComponent.cpp + .h | ❌ 不衝突 | ✅ 用戶已批准，等 P1 測試通過後執行 |
+| P3 | 格擋有但沒火花 | 需要 debug | ❌ 不衝突 | 等批准 |
+| P4 | Perilous Attack 沒有傷害 | SekiroEnemyAttributeComponent.cpp | ❌ 不衝突 | 等批准 |
+| P5 | Shift 閃避 | SekiroCharacter.cpp/h | ⚠️ 要問朋友 | 等確認 |
 
 ---
 
-_回答時間：2026-04-12 23:32:26 (HKT) 星期日_
-_累積對話 tokens：約 250,000_
+## ❓ 等你回覆
+
+1. **P1 Build + 測試**：Build 成功了嗎？測試結果怎樣？
+2. **P2 執行**：P1 測試 OK 後要直接做 P2 嗎？（Boss 擋完卡住不動的修復）
+
+---
+
+_回答時間：2026-04-13 00:34:25 (HKT) 星期一_
+_累積對話 tokens：約 45,000_

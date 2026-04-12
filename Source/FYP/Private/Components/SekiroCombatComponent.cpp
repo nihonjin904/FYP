@@ -417,7 +417,7 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
             Owner->FindComponentByClass<USekiroPostureComponent>();
         if (MyPosture) {
           // Penalty: 3x normal posture damage
-          MyPosture->AddPostureDamage(AttackPostureDamage * 3.0f);
+          MyPosture->AddPostureDamage(AttackPostureDamage * 1.5f);
         }
 
         // === 対刀 Feedback: Boss方（被擋方）也生成火花 + 音效 ===
