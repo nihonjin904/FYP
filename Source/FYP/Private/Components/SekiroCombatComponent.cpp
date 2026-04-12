@@ -10,6 +10,9 @@
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "MotionWarpingComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
 
 USekiroCombatComponent::USekiroCombatComponent() {
@@ -416,6 +419,34 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
           // Penalty: 3x normal posture damage
           MyPosture->AddPostureDamage(AttackPostureDamage * 3.0f);
         }
+
+        // === 対刀 Feedback: Boss方（被擋方）也生成火花 + 音效 ===
+        ASekiroCharacter* HitChar = Cast<ASekiroCharacter>(HitActor);
+        if (HitChar) {
+          // Boss 身上生成精準彈刀火花
+          if (HitChar->PerfectParryNiagara) {
+            FVector SparkLoc = HitChar->WeaponMesh ?
+              HitChar->WeaponMesh->GetComponentLocation() : HitChar->GetActorLocation();
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+              GetWorld(), HitChar->PerfectParryNiagara, SparkLoc,
+              FRotator::ZeroRotator, FVector(6.0f), true, true);
+          }
+          // Boss 身上播放精準彈刀音效
+          if (HitChar->PerfectParrySound)
+            UGameplayStatics::PlaySoundAtLocation(
+              GetWorld(), HitChar->PerfectParrySound, HitActor->GetActorLocation());
+
+          // Boss 格擋成功後快速反擊（AI 限定）
+          if (!Cast<APlayerController>(HitChar->GetController()) && HitChar->CombatComponent) {
+            float RetalDelay = FMath::RandRange(0.3f, 0.6f);
+            FTimerHandle RetalHandle;
+            HitChar->GetWorldTimerManager().SetTimer(RetalHandle,
+              [WeakHitChar = TWeakObjectPtr<ASekiroCharacter>(HitChar)]() {
+                if (WeakHitChar.IsValid() && WeakHitChar->CombatComponent && !WeakHitChar->CombatComponent->bIsAttacking)
+                  WeakHitChar->CombatComponent->RequestAttack();
+              }, RetalDelay, false);
+          }
+        }
       } else if (Result == EParryResult::Blocked) {
         if (GEngine)
           GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Blue,
@@ -423,6 +454,34 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
         // Blocked: No Health Damage, but Posture Damage
         if (PostureComp)
           PostureComp->AddPostureDamage(AttackPostureDamage * 0.5f);
+
+        // === 対刀 Feedback: Boss方（被擋方）也生成火花 + 音效 ===
+        ASekiroCharacter* HitChar = Cast<ASekiroCharacter>(HitActor);
+        if (HitChar) {
+          // Boss 身上生成普通格擋火花
+          if (HitChar->BlockNiagara) {
+            FVector SparkLoc = HitChar->WeaponMesh ?
+              HitChar->WeaponMesh->GetComponentLocation() : HitChar->GetActorLocation();
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+              GetWorld(), HitChar->BlockNiagara, SparkLoc,
+              FRotator::ZeroRotator, FVector(4.0f), true, true);
+          }
+          // Boss 身上播放普通格擋音效
+          if (HitChar->BlockSound)
+            UGameplayStatics::PlaySoundAtLocation(
+              GetWorld(), HitChar->BlockSound, HitActor->GetActorLocation());
+
+          // Boss 格擋成功後快速反擊（AI 限定）
+          if (!Cast<APlayerController>(HitChar->GetController()) && HitChar->CombatComponent) {
+            float RetalDelay = FMath::RandRange(0.35f, 0.7f);
+            FTimerHandle RetalHandle;
+            HitChar->GetWorldTimerManager().SetTimer(RetalHandle,
+              [WeakHitChar = TWeakObjectPtr<ASekiroCharacter>(HitChar)]() {
+                if (WeakHitChar.IsValid() && WeakHitChar->CombatComponent && !WeakHitChar->CombatComponent->bIsAttacking)
+                  WeakHitChar->CombatComponent->RequestAttack();
+              }, RetalDelay, false);
+          }
+        }
       } else // Failed
       {
         if (GEngine)

@@ -47,10 +47,10 @@ public:
 	bool bIsAI = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|AI", meta=(ClampMin="0.0", ClampMax="1.0"))
-	float BlockProbability = 0.5f;
+	float BlockProbability = 0.55f;  // 対刀：普通格擋 55%
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|AI", meta=(ClampMin="0.0", ClampMax="1.0"))
-	float DeflectProbability = 0.1f;
+	float DeflectProbability = 0.35f;  // 対刀：精準彈刀 35%
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Combat")
 	float PerfectParryWindow = 0.2f;

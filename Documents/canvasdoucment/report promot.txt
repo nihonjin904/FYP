@@ -1,0 +1,76 @@
+TEST 看看有沒有得自動run command 什麼都不要做
+
+你看看 看不看得到canvasdoucment裡面的下面的全部檔案 先回答我 
+
+SCM_Rules4CopyPlagiarism (3).pdf
+Phase_II_Final_Report_Cover.doc
+Updated_Penalty_(with_immediate_effect)_on_Substantiated_Academic_Dishonesty_Cases
+chrome_Htjf1cmb9a.png
+chrome_mEKuLDj2SL.png
+chrome_oQERMfyLTB.png
+
+你目前生成的資料是否根據 下面這些file或者是檔案的要求去做
+SCM_Rules4CopyPlagiarism (3).pdf
+Phase_II_Final_Report_Cover.doc
+Updated_Penalty_(with_immediate_effect)_on_Substantiated_Academic_Dishonesty_Cases
+chrome_Htjf1cmb9a.png
+chrome_mEKuLDj2SL.png
+chrome_oQERMfyLTB.png
+
+如果你要生成檔案 請你目前只需要在canvasdoucment裡面生成
+
+你可以參考之前交的doucmentsubmit folder裡面的
+
+然後你和我說 你建立的work檔案 有沒有什麼是需要我去加的 然後你和我說一下
+
+打開 Phase_II_Final_Report_Cover.doc，填入以下資料：Project Title、Group Name、Advisor、Students、Date	Cover 是 .doc 格式，我無法程式化編輯
+為什麼不行 你不能用py去製作嗎
+
+複製 Phase_II_Final_Report.docx 的全部內容，貼到 Cover 文件的第二頁開始	合併 Cover + 正文
+怎麼做 我不會
+
+在 Word 裡插入 Table of Contents：References → Table of Contents → Automatic Table 1	自動生成目錄
+我看已經有了啊 不用啦
+
+Gantt Chart：如果 advisor 要求有圖，你需要在 §6 加一張 Gantt chart 圖片	⚠️ 我的版本只有表格，無圖
+這個是什麼 我找不到
+
+導出 PDF：File → Save As → PDF
+為什麼要pdf word就可以拉
+
+檢查一下 §10 Implementation 的描述，確認和你實際做的一致	內容基於我對你項目的理解
+太多了吧 你不解說一下嗎
+
+Demo Video：如果需要，錄一段遊戲展示影片	Canvas 建議提交
+這個一定要交嗎 如果不需要 不想交 目前是不是只需要 project zip 和 word report就夠了？
+
+
+
+而且你能不能解說一下word檔案裡面全部東西 不然我怎麼知道 你做得是否是對的
+
+你cover page 加的很醜 你可不可以教我怎麼放進去final哪裡
+然後就是 我想加 AI只是輔助用 例如做project的時候 我們不懂 我們會向AI請教怎麼做 然後遇到fix 不到的error 我們會找AI求救 
+然後人物骨骼 或者是藍圖會叫AI叫我們怎麼做
+
+動畫來源是下面的link：
+https://www.mixamo.com/#/?page=1&query=Thrust
+https://www.mixamo.com/#/?page=1&query=Great+Sword+Slash
+https://gameassetsfree.com/assets/105484-katana-animation-set-4-27-unreal-engine/
+https://gameassetsfree.com/assets-ue/
+場景的link：
+https://www.fab.com/zh-cn/listings/64decb98-de69-4115-be0c-186c4f525940
+
+參考遊戲是：
+https://store.steampowered.com/app/2551500/__KANNAGI_USAGI/
+https://www.youtube.com/watch?v=vJ8AQklzezo
+https://store.steampowered.com/app/814380/Sekiro_Shadows_Die_Twice__GOTY_Edition/
+
+音效的link來源是：
+https://pixabay.com/sound-effects/search/sword/
+
+UI是 AI gen的
+
+我大致看是沒問題了 盡量用簡單的英文
+
+然後word檔案裡面寫的內容 你全部剪短和我說一下
+
