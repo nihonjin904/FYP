@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Save/FYPSaveGame.h"
 #include "SekiroCharacter.generated.h"
 
 class USekiroPostureComponent;
@@ -325,6 +326,49 @@ public:
   /** BlockHit 播完後若仍按住 Block，接回 BlockLoop */
   UFUNCTION()
   void OnBlockHitMontageEnded(UAnimMontage *Montage, bool bInterrupted);
+
+  // ========== You Died Widget ==========
+
+  /** Class of the "You Died" overlay widget — assign WBP_YouDied in Blueprint CDO */
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|UI")
+  TSubclassOf<UUserWidget> YouDiedWidgetClass;
+
+  /** Runtime reference to the You Died widget instance (created on death) */
+  UPROPERTY()
+  TObjectPtr<UUserWidget> YouDiedWidgetInstance;
+
+  // ========== Respawn / Checkpoint Save System ==========
+
+  /** Save this checkpoint name as activated. Called when F-key activates a checkpoint. */
+  UFUNCTION(BlueprintCallable, Category = "Sekiro|Checkpoint")
+  void SaveCheckpointActivated(const FString& CheckpointName);
+
+  /** Load activated checkpoint names from save slot. Called in BeginPlay. */
+  void LoadCheckpointSaveData();
+
+  /** Returns true if the given checkpoint name is in the activated list. */
+  bool IsCheckpointActivated(const FString& CheckpointName) const;
+
+  /** In-memory list of activated checkpoint names (loaded from save on BeginPlay). */
+  TArray<FString> ActivatedCheckpointNames;
+
+  /** Save slot name constant. */
+  static const FString CheckpointSaveSlot;
+
+  /** Death location cached when player dies — used to find nearest checkpoint. */
+  FVector CachedDeathLocation;
+
+  /** True when player is currently dead (prevents double-death trigger). */
+  bool bIsDead = false;
+
+  // ========== Respawn Flow ==========
+
+  /** Runs full respawn sequence: teleport to checkpoint → restore stats → re-enable input */
+  UFUNCTION(BlueprintCallable, Category = "Sekiro|Respawn")
+  void DoRespawn();
+
+  /** Timer handle for any fade or delayed respawn animations */
+  FTimerHandle FadeTimerHandle;
 
 protected:
   void Move(const FInputActionValue &Value);

@@ -2,6 +2,7 @@
 #include "Characters/SekiroCharacter.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
+#include "Components/Button.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/SekiroAttributeComponent.h"
@@ -16,6 +17,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/WorldSettings.h"
 #include "GameplayTagContainer.h"
@@ -31,6 +33,10 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
+#include "Camera/PlayerCameraManager.h"
+
+// Static constant for save slot name
+const FString ASekiroCharacter::CheckpointSaveSlot = TEXT("FYP_Slot_0");
 
 
 ASekiroCharacter::ASekiroCharacter() {
@@ -454,7 +460,11 @@ void ASekiroCharacter::BeginPlay() {
     }
   }
   // === END 武器 Re-Attach ===
+
+  // Load checkpoint save data on start (restores which checkpoints were activated)
+  LoadCheckpointSaveData();
 }
+
 
 void ASekiroCharacter::Tick(float DeltaTime) {
   Super::Tick(DeltaTime);
@@ -685,6 +695,9 @@ void ASekiroCharacter::SetupPlayerInputComponent(
             this->GetOverlappingActors(OverlappingActors);
             for (AActor* OverlappingActor : OverlappingActors) {
                 if (OverlappingActor->GetName().Contains(TEXT("Checkpoint"))) {
+                    // Save checkpoint activation to disk (Phase 5 Respawn System)
+                    this->SaveCheckpointActivated(OverlappingActor->GetName());
+
                     if (UClass* WidgetClass = StaticLoadClass(UUserWidget::StaticClass(), nullptr, TEXT("/Game/Blueprints/UI/WBP_UpgradeMenu.WBP_UpgradeMenu_C"))) {
                         if (UUserWidget* UpgradeMenu = CreateWidget<UUserWidget>(this->GetWorld(), WidgetClass)) {
                             UpgradeMenu->AddToViewport(9999);
@@ -785,6 +798,36 @@ void ASekiroCharacter::SetupPlayerInputComponent(
         }
     });
     PlayerInputComponent->KeyBindings.Add(Key3Binding);
+
+    // --- Debug: Press 0 five times to instantly kill the player ---
+    FInputKeyBinding Key0Binding(FInputChord(EKeys::Zero), IE_Pressed);
+    Key0Binding.bExecuteWhenPaused = false;
+    Key0Binding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        static int32 DebugKillCount = 0;
+        DebugKillCount++;
+        if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow,
+            FString::Printf(TEXT("[DEBUG] Kill in %d..."), 5 - DebugKillCount));
+        if (DebugKillCount >= 5)
+        {
+            DebugKillCount = 0;
+            if (AttributeComponent && !bIsDead)
+            {
+                AttributeComponent->ApplyDamage(99999.f);
+            }
+        }
+    });
+    PlayerInputComponent->KeyBindings.Add(Key0Binding);
+
+    // --- Space key: respawn when dead ---
+    FInputKeyBinding SpaceBinding(FInputChord(EKeys::SpaceBar), IE_Pressed);
+    SpaceBinding.bExecuteWhenPaused = true;
+    SpaceBinding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        if (bIsDead)
+        {
+            DoRespawn();
+        }
+    });
+    PlayerInputComponent->KeyBindings.Add(SpaceBinding);
     // --------------------------------------------------
 
     // Execution
@@ -1268,6 +1311,13 @@ void ASekiroCharacter::K2_OnAttackStarted_Implementation() {}
 void ASekiroCharacter::K2_OnAttackEnded_Implementation() {}
 
 void ASekiroCharacter::OnDeath() {
+  // Prevent double-death
+  if (bIsDead) return;
+  bIsDead = true;
+
+  // Cache death location for nearest-checkpoint calculation
+  CachedDeathLocation = GetActorLocation();
+
   // === 1. 停止所有移動 ===
   if (GetCharacterMovement()) {
     GetCharacterMovement()->StopMovementImmediately();
@@ -1283,11 +1333,9 @@ void ASekiroCharacter::OnDeath() {
   }
 
   // === 3. 禁用玩家輸入（玩家專用）===
-  if (Controller) {
-    APlayerController* PC = Cast<APlayerController>(Controller);
-    if (PC) {
-      DisableInput(PC);
-    }
+  APlayerController* PC = Controller ? Cast<APlayerController>(Controller) : nullptr;
+  if (PC) {
+    DisableInput(PC);
   }
 
   // === 4. 停止所有正在播放的動畫 ===
@@ -1338,10 +1386,218 @@ void ASekiroCharacter::OnDeath() {
           FreezeTime, false);
     }
   }
+
+  // === 8. Fade to black + show You Died UI (player only) ===
+  if (PC)
+  {
+    // Start camera fade to black over 2 seconds immediately on death
+    if (PC->PlayerCameraManager)
+    {
+        PC->PlayerCameraManager->StartCameraFade(0.f, 1.f, 2.0f, FLinearColor::Black, false, true);
+    }
+
+    // After 2s: show widget + debug text, re-enable input for Space key
+    FTimerHandle YouDiedShowTimer;
+    GetWorldTimerManager().SetTimer(YouDiedShowTimer, [this, PC]()
+    {
+        // Create the YouDied widget (if class assigned)
+        if (YouDiedWidgetClass)
+        {
+            YouDiedWidgetInstance = CreateWidget<UUserWidget>(PC, YouDiedWidgetClass);
+            if (YouDiedWidgetInstance)
+            {
+                YouDiedWidgetInstance->AddToViewport(10);
+
+                // Try to bind a Button named "RespawnButton"
+                UButton* RespawnBtn = Cast<UButton>(
+                    YouDiedWidgetInstance->GetWidgetFromName(TEXT("RespawnButton")));
+                if (RespawnBtn)
+                {
+                    RespawnBtn->OnClicked.AddDynamic(this, &ASekiroCharacter::DoRespawn);
+                }
+            }
+        }
+
+        // Re-enable input so Space key binding fires (keep movement disabled)
+        if (PC->GetPawn())
+        {
+            EnableInput(PC);
+        }
+        FInputModeGameOnly GameMode;
+        PC->SetInputMode(GameMode);
+        PC->SetShowMouseCursor(false);
+    }, 2.0f, false);
+  }
 }
+
 
 // version 3 — 2026年2月22日 23:50 (香港時間)
 // v1：加處決音效、被打Camera Shake、DoCameraShake Debug訊息
 // v2：降低鎖定敵人時Camera高度
-// v3：用 ConstructorHelpers
-// 自動載入所有音效/CameraShake/Niagara/InputAction（永遠不會因Blueprint重置而丟失）
+// v3：用 ConstructorHelpers 自動載入所有音效/CameraShake/Niagara/InputAction
+// v4 (Phase 5)：加 Global Respawn System、SaveGame、You Died UI
+
+// ======================== RESPAWN SYSTEM (Phase 5) ========================
+
+void ASekiroCharacter::DoRespawn()
+{
+    APlayerController* PC = Controller ? Cast<APlayerController>(Controller) : nullptr;
+
+    // Step 0: Fade from black
+    if (PC && PC->PlayerCameraManager)
+    {
+        PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 0.8f, FLinearColor::Black, false, false);
+    }
+
+    // Clear any on-screen death messages
+    if (GEngine) GEngine->RemoveOnScreenDebugMessage(9001);
+
+    // Step 1: Remove the You Died widget
+    if (YouDiedWidgetInstance)
+    {
+        YouDiedWidgetInstance->RemoveFromParent();
+        YouDiedWidgetInstance = nullptr;
+    }
+
+    // Step 2: Find nearest activated checkpoint using actor tag "Checkpoint"
+    TArray<AActor*> CheckpointActors;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Checkpoint"), CheckpointActors);
+
+    AActor* NearestCheckpoint = nullptr;
+    float MinDist = MAX_FLT;
+
+    for (AActor* CP : CheckpointActors)
+    {
+        if (CP && IsCheckpointActivated(CP->GetName()))
+        {
+            float Dist = FVector::Dist(CachedDeathLocation, CP->GetActorLocation());
+            if (Dist < MinDist)
+            {
+                MinDist = Dist;
+                NearestCheckpoint = CP;
+            }
+        }
+    }
+
+    // Step 3: Determine respawn location (checkpoint or PlayerStart fallback)
+    FVector RespawnLocation = FVector::ZeroVector;
+    bool bFoundLocation = false;
+
+    if (NearestCheckpoint)
+    {
+        RespawnLocation = NearestCheckpoint->GetActorLocation() + FVector(200.f, 0.f, 100.f);
+        bFoundLocation = true;
+        UE_LOG(LogTemp, Log, TEXT("[FYP] Respawning at checkpoint: %s"), *NearestCheckpoint->GetName());
+    }
+    else
+    {
+        AActor* PlayerStartActor = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
+        if (PlayerStartActor)
+        {
+            RespawnLocation = PlayerStartActor->GetActorLocation() + FVector(0.f, 0.f, 100.f);
+            bFoundLocation = true;
+            UE_LOG(LogTemp, Log, TEXT("[FYP] No activated checkpoint — respawning at PlayerStart."));
+        }
+    }
+
+    // Step 4: Unfreeze animation
+    if (GetMesh())
+    {
+        GetMesh()->bPauseAnims = false;
+        GetMesh()->bNoSkeletonUpdate = false;
+    }
+
+    // Step 5: Re-enable capsule collision
+    if (GetCapsuleComponent())
+    {
+        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    }
+
+    // Step 6: Re-enable movement
+    if (GetCharacterMovement())
+    {
+        GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+    }
+
+    // Step 7: Restore health to full (MaxHealth preserves Phase 4 upgrade bonuses)
+    if (AttributeComponent)
+    {
+        AttributeComponent->CurrentHealth = AttributeComponent->MaxHealth;
+        // Broadcast so HUD updates immediately
+        AttributeComponent->OnHealthChanged.Broadcast(
+            AttributeComponent->CurrentHealth, AttributeComponent->MaxHealth);
+    }
+
+    // Step 8: Reset posture
+    if (PostureComponent)
+    {
+        PostureComponent->ResetPosture();
+    }
+
+    // Step 9: Reset combat state
+    if (CombatComponent)
+    {
+        CombatComponent->ResetCombo();
+    }
+
+    // Step 10: Teleport
+    if (bFoundLocation)
+    {
+        SetActorLocation(RespawnLocation, false, nullptr, ETeleportType::TeleportPhysics);
+    }
+
+    // Step 11: Re-enable tick
+    SetActorTickEnabled(true);
+
+    // Step 12: Re-enable input and reset to game input mode
+    if (PC)
+    {
+        EnableInput(PC);
+        PC->SetInputMode(FInputModeGameOnly());
+        PC->SetShowMouseCursor(false);
+    }
+
+    // Step 13: Reset dead flag
+    bIsDead = false;
+
+    UE_LOG(LogTemp, Log, TEXT("[FYP] Respawn complete."));
+}
+
+void ASekiroCharacter::LoadCheckpointSaveData()
+{
+    UFYPSaveGame* SaveGame = Cast<UFYPSaveGame>(
+        UGameplayStatics::LoadGameFromSlot(CheckpointSaveSlot, 0));
+    if (SaveGame)
+    {
+        ActivatedCheckpointNames = SaveGame->ActivatedCheckpointNames;
+        UE_LOG(LogTemp, Log, TEXT("[FYP] Loaded %d activated checkpoints from save."),
+               ActivatedCheckpointNames.Num());
+    }
+    else
+    {
+        ActivatedCheckpointNames.Empty();
+        UE_LOG(LogTemp, Log, TEXT("[FYP] No save data found — starting fresh."));
+    }
+}
+
+void ASekiroCharacter::SaveCheckpointActivated(const FString& CheckpointName)
+{
+    if (!ActivatedCheckpointNames.Contains(CheckpointName))
+    {
+        ActivatedCheckpointNames.Add(CheckpointName);
+    }
+
+    UFYPSaveGame* SaveGame = Cast<UFYPSaveGame>(
+        UGameplayStatics::CreateSaveGameObject(UFYPSaveGame::StaticClass()));
+    if (SaveGame)
+    {
+        SaveGame->ActivatedCheckpointNames = ActivatedCheckpointNames;
+        UGameplayStatics::SaveGameToSlot(SaveGame, CheckpointSaveSlot, 0);
+        UE_LOG(LogTemp, Log, TEXT("[FYP] Saved checkpoint activation: %s"), *CheckpointName);
+    }
+}
+
+bool ASekiroCharacter::IsCheckpointActivated(const FString& CheckpointName) const
+{
+    return ActivatedCheckpointNames.Contains(CheckpointName);
+}
