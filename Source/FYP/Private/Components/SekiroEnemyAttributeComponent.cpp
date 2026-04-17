@@ -10,6 +10,7 @@
 #include "Components/SekiroDeflectComponent.h"
 #include "Components/SekiroAttributeComponent.h"
 #include "Components/SekiroPostureComponent.h"
+#include "Sound/SoundBase.h"
 
 USekiroEnemyAttributeComponent::USekiroEnemyAttributeComponent()
 {
@@ -22,12 +23,34 @@ void USekiroEnemyAttributeComponent::BeginPlay()
 
 	CombatComp = GetOwner()->FindComponentByClass<USekiroCombatComponent>();
 
+	// ===== 自動遷移：若無設定 PerilousAttackMontages，從 CombatComp.SpecialMontages 遷移 =====
+	if (PerilousAttackMontages.Num() == 0 && CombatComp && CombatComp->SpecialMontages.Num() > 0)
+	{
+		PerilousAttackMontages = CombatComp->SpecialMontages;
+		CombatComp->SpecialMontages.Empty(); // 清空避免 CombatComp 重複播放
+
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,
+				FString::Printf(TEXT("[PerilousAttack] ✅ Auto-migrated %d montages from SpecialMontages"),
+					PerilousAttackMontages.Num()));
+	}
+
 	// Debug: 顯示當前 Perilous Montage 數量
 	if (GEngine)
 	{
-		FString Msg = FString::Printf(TEXT("Perilous Montages loaded: %d"), PerilousAttackMontages.Num());
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, 
-			PerilousAttackMontages.Num() > 0 ? FColor::Cyan : FColor::Yellow, Msg);
+		FString Msg = FString::Printf(TEXT("[PerilousAttack] Montages ready: %d"), PerilousAttackMontages.Num());
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f,
+			PerilousAttackMontages.Num() > 0 ? FColor::Cyan : FColor::Red, Msg);
+	}
+
+	// ===== 自動載入危攻擊命中音效 =====
+	if (!PerilousAttackHitSound)
+	{
+		PerilousAttackHitSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/sound_effect/處決聲音.處決聲音"));
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 3.f,
+				PerilousAttackHitSound ? FColor::Green : FColor::Red,
+				PerilousAttackHitSound ? TEXT("[PerilousAttack] ✅ 音效載入成功") : TEXT("[PerilousAttack] ❌ 音效載入失敗"));
 	}
 }
 
@@ -251,8 +274,13 @@ bool USekiroEnemyAttributeComponent::TryPerilousAttack()
 						if (PostureComp)
 							PostureComp->AddPostureDamage(0.0f); // pause regen
 
+						// ===== 播放危攻擊命中音效 =====
+						if (PerilousAttackHitSound)
+							UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+								PerilousAttackHitSound, Owner->GetActorLocation());
+
 						if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
-							TEXT("PERILOUS HIT! Player damaged!"));
+							TEXT("[PerilousAttack] ⚠ PERILOUS HIT! Player damaged!"));
 					}
 				}
 				else
