@@ -2,6 +2,8 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/Widget.h"
 #include "Components/Image.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -34,17 +36,128 @@ void USekiroGameHUDWidget::NativeConstruct()
 			// Apply material to MinimapImage
 			MinimapImage->SetBrushFromMaterial(MinimapMID);
 			FSlateBrush Brush = MinimapImage->GetBrush();
-			Brush.ImageSize = FVector2D(150.f, 150.f);
+			Brush.ImageSize = FVector2D(300.f, 300.f);
 			MinimapImage->SetBrush(Brush);
 		}
 	}
+
+	// ===== Minimap: Build checkpoint dots =====
+	BuildCheckpointDots();
 }
 
 void USekiroGameHUDWidget::NativeDestruct()
 {
 	if (Instance == this)
 		Instance = nullptr;
+	CheckpointDots.Empty();
 	Super::NativeDestruct();
+}
+
+// ===================================================
+// Minimap Checkpoint Dots
+// ===================================================
+
+void USekiroGameHUDWidget::BuildCheckpointDots()
+{
+	if (!MinimapDotsPanel || !WidgetTree)
+		return;
+
+	CheckpointDots.Empty();
+	MinimapDotsPanel->ClearChildren();
+
+	// Find all checkpoint actors in the level
+	TArray<AActor*> Checkpoints;
+	UGameplayStatics::GetAllActorsOfClassWithTag(
+		GetWorld(), AActor::StaticClass(), FName("Checkpoint"), Checkpoints);
+
+	// Fallback: find by name pattern
+	if (Checkpoints.Num() == 0)
+	{
+		TArray<AActor*> All;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), All);
+		for (AActor* A : All)
+		{
+			if (A && A->GetName().Contains(TEXT("Checkpoint")))
+				Checkpoints.Add(A);
+		}
+	}
+
+	const float DotSize = 14.f;
+	const float HalfPanel = MinimapDisplaySize * 0.5f;
+
+	for (AActor* Actor : Checkpoints)
+	{
+		if (!Actor) continue;
+
+		// Create an Image dot widget
+		UImage* Dot = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
+		if (!Dot) continue;
+
+		// Set initial gray color
+		Dot->SetColorAndOpacity(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
+
+		// Add to canvas panel
+		UCanvasPanelSlot* CanvasSlot = MinimapDotsPanel->AddChildToCanvas(Dot);
+		if (CanvasSlot)
+		{
+			CanvasSlot->SetSize(FVector2D(DotSize, DotSize));
+			// Center alignment so position is at dot center
+			CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+			// Default to panel center until first refresh
+			CanvasSlot->SetPosition(FVector2D(HalfPanel, HalfPanel));
+		}
+
+		FMinimapDotInfo Info;
+		Info.ActorName = Actor->GetName();
+		Info.WorldPos  = Actor->GetActorLocation();
+		Info.DotWidget = Dot;
+		CheckpointDots.Add(Info);
+	}
+}
+
+void USekiroGameHUDWidget::RefreshCheckpointDots(ASekiroCharacter* Player)
+{
+	if (!Player || CheckpointDots.Num() == 0)
+		return;
+
+	const FVector  PlayerLoc  = Player->GetActorLocation();
+	const float    PlayerYaw  = Player->GetActorRotation().Yaw;
+	const float    HalfPanel  = MinimapDisplaySize * 0.5f;
+	const float    Scale      = MinimapDisplaySize / (MinimapOrthoRadius * 2.f);
+	const float    YawRad     = FMath::DegreesToRadians(-PlayerYaw);
+	const float    CosYaw     = FMath::Cos(YawRad);
+	const float    SinYaw     = FMath::Sin(YawRad);
+
+	for (FMinimapDotInfo& Info : CheckpointDots)
+	{
+		if (!Info.DotWidget) continue;
+
+		// World offset (2D)
+		const float DX = Info.WorldPos.X - PlayerLoc.X;
+		const float DY = Info.WorldPos.Y - PlayerLoc.Y;
+
+		// Rotate into player-local space (so player faces up)
+		const float LocalFwd   =  DX * CosYaw - DY * SinYaw; // forward = up in minimap
+		const float LocalRight =  DX * SinYaw + DY * CosYaw; // right   = right in minimap
+
+		// Convert to minimap pixel coords (UMG Y+ = down, UE fwd = up)
+		const float PixelX = HalfPanel + LocalRight * Scale;
+		const float PixelY = HalfPanel - LocalFwd   * Scale;
+
+		// Move dot (clamp to panel so it doesn't escape the circle)
+		const float ClampedX = FMath::Clamp(PixelX, 0.f, MinimapDisplaySize);
+		const float ClampedY = FMath::Clamp(PixelY, 0.f, MinimapDisplaySize);
+
+		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Info.DotWidget->Slot))
+			CanvasSlot->SetPosition(FVector2D(ClampedX, ClampedY));
+
+		// Color: green = activated, gray = inactive
+		const bool bActive = Player->ActivatedCheckpointNames.Contains(Info.ActorName);
+		Info.DotWidget->SetColorAndOpacity(
+			bActive
+				? FLinearColor(0.f, 1.f, 0.2f, 1.f)    // bright green
+				: FLinearColor(0.5f, 0.5f, 0.5f, 1.f)); // gray
+	}
 }
 
 void USekiroGameHUDWidget::FlashWidgetByName(const FName& WidgetName)
@@ -104,6 +217,18 @@ void USekiroGameHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 	// ===== Minimap: PlayerArrow stays fixed (map rotates with player) =====
 	if (PlayerArrow)
 	{
-		PlayerArrow->SetRenderTransformAngle(0.f); // Always points up — map rotation handles direction
+		PlayerArrow->SetRenderTransformAngle(0.f);
+	}
+
+	// ===== Minimap: Refresh checkpoint dots every 0.5s =====
+	MinimapDotTimer += InDeltaTime;
+	if (MinimapDotTimer >= MinimapDotRefreshInterval)
+	{
+		MinimapDotTimer = 0.f;
+		if (APlayerController* PC = GetOwningPlayer())
+		{
+			if (ASekiroCharacter* SekiroChar = Cast<ASekiroCharacter>(PC->GetPawn()))
+				RefreshCheckpointDots(SekiroChar);
+		}
 	}
 }
