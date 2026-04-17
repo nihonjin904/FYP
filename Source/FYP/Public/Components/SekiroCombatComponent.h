@@ -42,6 +42,11 @@ public:
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
   void ResetAttackHit();
 
+  // 危攻擊傷害判定（由危攻擊 Montage 的 AnimNotify 調用）
+  // 使用 Attack.Perilous tag，強制繞過玩家格擋，直接造成傷害
+  UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
+  void PerformPerilousHitCheck();
+
   // Attempt to perform an execution (Deathblow)
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combat")
   bool TryExecuteTarget(AActor *TargetActor);
@@ -58,6 +63,19 @@ public:
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combat")
   float AttackPostureDamage = 20.0f;
+
+  // 精準擋刀（Perfect Parry）對攻擊者的固定架勢懲罰
+  // 固定值，與 AttackPostureDamage 脫鉤，避免 Boss 攻擊值高時玩家瞬間滿架勢
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combat")
+  float PerfectParryPosturePenalty = 15.0f;
+
+  // 危攻擊（無法格擋）造成的血量傷害
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combat")
+  float PerilousAttackDamage = 25.0f;
+
+  // 危攻擊（無法格擋）造成的架勢傷害
+  UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combat")
+  float PerilousPostureDamage = 30.0f;
 
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|Combat")
   FGameplayTag ContainerTag_Stunned;

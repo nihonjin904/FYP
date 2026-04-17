@@ -416,8 +416,8 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
         USekiroPostureComponent *MyPosture =
             Owner->FindComponentByClass<USekiroPostureComponent>();
         if (MyPosture) {
-          // Penalty: 3x normal posture damage
-          MyPosture->AddPostureDamage(AttackPostureDamage * 1.5f);
+          // 固定懲罰量，與 Boss 攻擊值脱鉤，避免 Boss攻擊值設高時玩家架勢條瞬間滿
+          MyPosture->AddPostureDamage(PerfectParryPosturePenalty);
         }
 
         // === 対刀 Feedback: Boss方（被擋方）也生成火花 + 音效 ===
@@ -551,4 +551,67 @@ void USekiroCombatComponent::StopAutoAttackWindow() {
     GetWorld()->GetTimerManager().ClearTimer(AttackWindowTickHandle);
     GetWorld()->GetTimerManager().ClearTimer(AttackWindowEndHandle);
   }
+}
+
+// ========== 危攻擊傷害判定 ==========
+
+void USekiroCombatComponent::PerformPerilousHitCheck()
+{
+    // 一次攻擊窗口內只命中一次，防止重複傷害
+    if (bHasHit) return;
+
+    AActor* Owner = GetOwner();
+    if (!Owner) return;
+
+    // 使用 Attack.Perilous tag
+    // SekiroDeflectComponent::TryParry() 看到這個 tag 會強制返回 Failed
+    // 即使玩家正在按住格擋也無法擋住
+    FGameplayTag PerilousTag =
+        FGameplayTag::RequestGameplayTag(FName("Attack.Perilous"));
+    OnAttackPerformed.Broadcast(PerilousTag);
+
+    // Sphere Trace：範圍與普通攻擊相同
+    FVector Start = Owner->GetActorLocation();
+    FVector End   = Start + (Owner->GetActorForwardVector() * AttackRange);
+
+    FHitResult HitResult;
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(Owner);
+
+    bool bHit = GetWorld()->SweepSingleByChannel(
+        HitResult, Start, End, FQuat::Identity, ECC_Pawn,
+        FCollisionShape::MakeSphere(50.0f), QueryParams);
+
+    if (bHit && HitResult.GetActor())
+    {
+        bHasHit = true;
+        AActor* HitActor = HitResult.GetActor();
+
+        USekiroDeflectComponent* DeflectComp =
+            HitActor->FindComponentByClass<USekiroDeflectComponent>();
+        USekiroPostureComponent* PostureComp =
+            HitActor->FindComponentByClass<USekiroPostureComponent>();
+        USekiroAttributeComponent* AttributeComp =
+            HitActor->FindComponentByClass<USekiroAttributeComponent>();
+
+        // 就算玩家有 DeflectComp，也會因為 Attack.Perilous tag 而強制返回 Failed
+        // 這裡調用主要是為了觸發 OnParryResult 廣播（UI 危字、音效等可在 BP 聴）
+        if (DeflectComp)
+            DeflectComp->TryParry(PerilousTag);
+
+        // 無條件造成傷害（無法格擋）
+        if (AttributeComp)
+            AttributeComp->ApplyDamage(PerilousAttackDamage);
+
+        // 架勢傷害（比普通攻擊重，加速玩家架勢條墊滿）
+        if (PostureComp)
+            PostureComp->AddPostureDamage(PerilousPostureDamage);
+
+        if (GEngine)
+            GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
+                TEXT("⚠ PERILOUS HIT — UNBLOCKABLE!"));
+    }
+
+    // Debug 話氣球（橙色區分普通攻擊红色）
+    DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Orange, false, 1.0f);
 }
