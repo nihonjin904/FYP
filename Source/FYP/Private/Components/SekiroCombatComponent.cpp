@@ -4,6 +4,7 @@
 #include "Characters/SekiroCharacter.h"
 #include "Components/SekiroAttributeComponent.h"
 #include "Components/SekiroDeflectComponent.h"
+#include "Components/SekiroEnemyAttributeComponent.h" // 危字廣播
 #include "Components/SekiroPostureComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Actor.h"
@@ -69,7 +70,25 @@ void USekiroCombatComponent::RequestAttack() {
         FOnMontageEnded EndDelegate;
         EndDelegate.BindUObject(this, &USekiroCombatComponent::OnMontageEnded);
         AnimInstance->Montage_SetEndDelegate(EndDelegate, SpecialMontages[RandomIndex]);
-        
+
+        // ===== 危攻擊：廣播危字 UI + 設定命中判定 Timer =====
+        bHasHit = false; // 重置多次命中防護
+
+        // 1️⃣ 廣播危字 UI
+        if (USekiroEnemyAttributeComponent* EnemyAttrComp =
+            GetOwner()->FindComponentByClass<USekiroEnemyAttributeComponent>())
+        {
+            EnemyAttrComp->OnPerilousAttackStarted.Broadcast();
+            if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red,
+                TEXT("[危] Perilous Attack Warning Broadcast!"));
+        }
+
+        // 2️⃣ 在第 0.3 秒後啟動命中判定（相當於動画擊中這段）
+        GetWorld()->GetTimerManager().SetTimer(
+            PerilousAttackHitHandle,
+            [this]() { PerformPerilousHitCheck(); },
+            0.3f, false);
+
         return; // 直接搶斷，終止下方 ComboMontages 執行
       }
       // --- END BOSS RNG OVERRIDE ---

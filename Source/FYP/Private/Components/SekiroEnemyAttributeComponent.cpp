@@ -23,15 +23,17 @@ void USekiroEnemyAttributeComponent::BeginPlay()
 
 	CombatComp = GetOwner()->FindComponentByClass<USekiroCombatComponent>();
 
-	// ===== 自動遷移：若無設定 PerilousAttackMontages，從 CombatComp.SpecialMontages 遷移 =====
+	// ===== 自動遷移策略：同步 SpecialMontages 至 PerilousAttackMontages (不清空原陣列) =====
+	// 注意：SpecialMontages 必須保留，否則 SekiroCombatComponent::RequestAttack() 的
+	//       SpecialMontages.Num() > 0 檢查會返回 false，危攻擊永遠不會播放
 	if (PerilousAttackMontages.Num() == 0 && CombatComp && CombatComp->SpecialMontages.Num() > 0)
 	{
-		PerilousAttackMontages = CombatComp->SpecialMontages;
-		CombatComp->SpecialMontages.Empty(); // 清空避免 CombatComp 重複播放
+		PerilousAttackMontages = CombatComp->SpecialMontages; // 同步到 Perilous 清單
+		// ⚠️ 不清空 SpecialMontages！清空會導致 RequestAttack() 永遠走普通攻擊路徑
 
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,
-				FString::Printf(TEXT("[PerilousAttack] ✅ Auto-migrated %d montages from SpecialMontages"),
+				FString::Printf(TEXT("[PerilousAttack] ✅ Synced %d montages (SpecialMontages preserved)"),
 					PerilousAttackMontages.Num()));
 	}
 
