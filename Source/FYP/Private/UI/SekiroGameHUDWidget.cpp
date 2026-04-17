@@ -1,6 +1,11 @@
 #include "UI/SekiroGameHUDWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Widget.h"
+#include "Components/Image.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Engine/TextureRenderTarget2D.h"
+#include "Kismet/GameplayStatics.h"
+#include "Characters/SekiroCharacter.h"
 
 USekiroGameHUDWidget* USekiroGameHUDWidget::Instance = nullptr;
 
@@ -8,6 +13,31 @@ void USekiroGameHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	Instance = this;
+
+	// ===== Minimap: Create dynamic material instance and wire RenderTarget =====
+	if (MinimapImage && MinimapMaskMaterial)
+	{
+		MinimapMID = UMaterialInstanceDynamic::Create(MinimapMaskMaterial, this);
+		if (MinimapMID)
+		{
+			// Get player character to retrieve the RenderTarget
+			if (APlayerController* PC = GetOwningPlayer())
+			{
+				if (ASekiroCharacter* SekiroChar = Cast<ASekiroCharacter>(PC->GetPawn()))
+				{
+					if (SekiroChar->MinimapRenderTarget)
+					{
+						MinimapMID->SetTextureParameterValue(TEXT("MinimapTexture"), SekiroChar->MinimapRenderTarget);
+					}
+				}
+			}
+			// Apply material to MinimapImage
+			MinimapImage->SetBrushFromMaterial(MinimapMID);
+			FSlateBrush Brush = MinimapImage->GetBrush();
+			Brush.ImageSize = FVector2D(150.f, 150.f);
+			MinimapImage->SetBrush(Brush);
+		}
+	}
 }
 
 void USekiroGameHUDWidget::NativeDestruct()
@@ -69,5 +99,11 @@ void USekiroGameHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 			float Opacity = FMath::Lerp(FlashMinOpacity, 1.0f, Alpha);
 			Info.Widget->SetRenderOpacity(Opacity);
 		}
+	}
+
+	// ===== Minimap: PlayerArrow stays fixed (map rotates with player) =====
+	if (PlayerArrow)
+	{
+		PlayerArrow->SetRenderTransformAngle(0.f); // Always points up — map rotation handles direction
 	}
 }
