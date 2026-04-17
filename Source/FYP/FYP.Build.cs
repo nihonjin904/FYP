@@ -15,7 +15,9 @@ public class FYP : ModuleRules
 			"GameplayTags",
 			"MotionWarping", // Added for Execution requirement
 			"UMG",
-			"Niagara"
+			"Niagara",
+			"Slate",
+			"SlateCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

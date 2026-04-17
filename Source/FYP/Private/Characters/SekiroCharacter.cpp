@@ -34,6 +34,8 @@
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Components/SceneCaptureComponent2D.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 // Static constant for save slot name
 const FString ASekiroCharacter::CheckpointSaveSlot = TEXT("FYP_Slot_0");
@@ -201,6 +203,25 @@ ASekiroCharacter::ASekiroCharacter() {
           TEXT("/Game/ThirdPerson/Input/IMC_Default.IMC_Default"));
   if (DefaultMappingAsset.Succeeded())
     DefaultMappingContext = DefaultMappingAsset.Object;
+
+  // ===== Minimap SceneCapture2D =====
+  MinimapCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MinimapCapture"));
+  MinimapCapture->SetupAttachment(RootComponent);
+  MinimapCapture->SetRelativeLocation(FVector(0.f, 0.f, 3000.f)); // 3000 units above player
+  MinimapCapture->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f)); // Face straight down
+  MinimapCapture->ProjectionType = ECameraProjectionMode::Orthographic;
+  MinimapCapture->OrthoWidth = 3000.f;
+  MinimapCapture->bCaptureEveryFrame = false;     // Manual throttle in Tick
+  MinimapCapture->bCaptureOnMovement = false;
+  MinimapCapture->CaptureSource = SCS_FinalColorLDR;
+  // Disable expensive render features
+  MinimapCapture->ShowFlags.SetFog(false);
+  MinimapCapture->ShowFlags.SetDynamicShadows(false);
+  MinimapCapture->ShowFlags.SetBloom(false);
+  MinimapCapture->ShowFlags.SetAmbientOcclusion(false);
+  MinimapCapture->ShowFlags.SetDepthOfField(false);
+  MinimapCapture->ShowFlags.SetMotionBlur(false);
+  MinimapRenderTarget = nullptr; // Assigned via Blueprint property
 }
 
 void ASekiroCharacter::BeginPlay() {
@@ -463,11 +484,29 @@ void ASekiroCharacter::BeginPlay() {
 
   // Load checkpoint save data on start (restores which checkpoints were activated)
   LoadCheckpointSaveData();
+
+  // ===== Minimap: Assign RenderTarget after BeginPlay =====
+  if (MinimapCapture && MinimapRenderTarget)
+  {
+    MinimapCapture->TextureTarget = MinimapRenderTarget;
+    MinimapCapture->CaptureScene(); // Initial capture
+  }
 }
 
 
 void ASekiroCharacter::Tick(float DeltaTime) {
   Super::Tick(DeltaTime);
+
+  // ===== Minimap Throttled Capture (~10fps) =====
+  if (MinimapCapture && MinimapRenderTarget && MinimapCapture->TextureTarget)
+  {
+    MinimapCaptureTimer += DeltaTime;
+    if (MinimapCaptureTimer >= MinimapCaptureInterval)
+    {
+      MinimapCaptureTimer = 0.f;
+      MinimapCapture->CaptureScene();
+    }
+  }
 
   if (GEngine) {
     float CurrentHP =

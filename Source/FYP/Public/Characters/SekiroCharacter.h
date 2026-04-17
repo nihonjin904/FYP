@@ -18,6 +18,8 @@ class UInputMappingContext;
 class UInputAction;
 class UCameraComponent;
 class USpringArmComponent;
+class USceneCaptureComponent2D;
+class UTextureRenderTarget2D;
 
 UCLASS()
 class FYP_API ASekiroCharacter : public ACharacter {
@@ -52,6 +54,19 @@ public:
 
   UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
   TObjectPtr<UWidgetComponent> DeathblowWidget;
+
+  // ===== Minimap =====
+  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Minimap")
+  USceneCaptureComponent2D* MinimapCapture;
+
+  UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Minimap")
+  UTextureRenderTarget2D* MinimapRenderTarget;
+
+private:
+  float MinimapCaptureTimer = 0.f;
+  static constexpr float MinimapCaptureInterval = 0.1f; // Throttle to 10fps
+
+public:
 
   UFUNCTION()
   void OnPostureBroken();
