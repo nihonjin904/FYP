@@ -82,8 +82,18 @@ void USekiroGameHUDWidget::BuildCheckpointDots()
 		}
 	}
 
-	const float DotSize = 14.f;
+	const float DotSize  = 14.f;
 	const float HalfPanel = MinimapDisplaySize * 0.5f;
+
+	// Build a reusable circular brush (RoundedBox with full corner radius = circle)
+	FSlateBrush CircleBrush;
+	CircleBrush.DrawAs    = ESlateBrushDrawType::RoundedBox;
+	CircleBrush.ImageSize = FVector2D(DotSize, DotSize);
+	CircleBrush.TintColor = FSlateColor(FLinearColor::White); // fill color via ColorAndOpacity
+	CircleBrush.OutlineSettings.CornerRadii    = FVector4(DotSize * 0.5f, DotSize * 0.5f, DotSize * 0.5f, DotSize * 0.5f);
+	CircleBrush.OutlineSettings.RoundingType   = ESlateBrushRoundingType::FixedRadius;
+	CircleBrush.OutlineSettings.Color          = FSlateColor(FLinearColor::Black);
+	CircleBrush.OutlineSettings.Width          = 2.f;
 
 	for (AActor* Actor : Checkpoints)
 	{
@@ -93,7 +103,8 @@ void USekiroGameHUDWidget::BuildCheckpointDots()
 		UImage* Dot = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
 		if (!Dot) continue;
 
-		// Set initial gray color
+		// Apply circular brush + initial gray fill
+		Dot->SetBrush(CircleBrush);
 		Dot->SetColorAndOpacity(FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
 
 		// Add to canvas panel
@@ -101,9 +112,7 @@ void USekiroGameHUDWidget::BuildCheckpointDots()
 		if (CanvasSlot)
 		{
 			CanvasSlot->SetSize(FVector2D(DotSize, DotSize));
-			// Center alignment so position is at dot center
-			CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-			// Default to panel center until first refresh
+			CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f)); // position targets dot center
 			CanvasSlot->SetPosition(FVector2D(HalfPanel, HalfPanel));
 		}
 
@@ -128,6 +137,9 @@ void USekiroGameHUDWidget::RefreshCheckpointDots(ASekiroCharacter* Player)
 	const float    CosYaw     = FMath::Cos(YawRad);
 	const float    SinYaw     = FMath::Sin(YawRad);
 
+	const float Radius    = MinimapDisplaySize * 0.5f; // minimap circle radius in pixels
+	const float DotMargin = 8.f;                        // hide dot if center is this close to/beyond edge
+
 	for (FMinimapDotInfo& Info : CheckpointDots)
 	{
 		if (!Info.DotWidget) continue;
@@ -136,27 +148,34 @@ void USekiroGameHUDWidget::RefreshCheckpointDots(ASekiroCharacter* Player)
 		const float DX = Info.WorldPos.X - PlayerLoc.X;
 		const float DY = Info.WorldPos.Y - PlayerLoc.Y;
 
-		// Rotate into player-local space (so player faces up)
-		const float LocalFwd   =  DX * CosYaw - DY * SinYaw; // forward = up in minimap
-		const float LocalRight =  DX * SinYaw + DY * CosYaw; // right   = right in minimap
+		// Rotate into player-local space (player faces up)
+		const float LocalFwd   =  DX * CosYaw - DY * SinYaw;
+		const float LocalRight =  DX * SinYaw + DY * CosYaw;
 
-		// Convert to minimap pixel coords (UMG Y+ = down, UE fwd = up)
+		// Convert to minimap pixel coords
 		const float PixelX = HalfPanel + LocalRight * Scale;
 		const float PixelY = HalfPanel - LocalFwd   * Scale;
 
-		// Move dot (clamp to panel so it doesn't escape the circle)
-		const float ClampedX = FMath::Clamp(PixelX, 0.f, MinimapDisplaySize);
-		const float ClampedY = FMath::Clamp(PixelY, 0.f, MinimapDisplaySize);
+		// Hide dot if outside the circular minimap boundary
+		const float DistFromCenter = FMath::Sqrt(
+			FMath::Square(PixelX - HalfPanel) + FMath::Square(PixelY - HalfPanel));
+		if (DistFromCenter > Radius - DotMargin)
+		{
+			Info.DotWidget->SetVisibility(ESlateVisibility::Hidden);
+			continue;
+		}
+		Info.DotWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 
+		// Update position
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Info.DotWidget->Slot))
-			CanvasSlot->SetPosition(FVector2D(ClampedX, ClampedY));
+			CanvasSlot->SetPosition(FVector2D(PixelX, PixelY));
 
 		// Color: green = activated, gray = inactive
 		const bool bActive = Player->ActivatedCheckpointNames.Contains(Info.ActorName);
 		Info.DotWidget->SetColorAndOpacity(
 			bActive
-				? FLinearColor(0.f, 1.f, 0.2f, 1.f)    // bright green
-				: FLinearColor(0.5f, 0.5f, 0.5f, 1.f)); // gray
+				? FLinearColor(0.f, 1.f, 0.2f, 1.f)
+				: FLinearColor(0.5f, 0.5f, 0.5f, 1.f));
 	}
 }
 
