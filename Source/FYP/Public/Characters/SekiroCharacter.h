@@ -20,6 +20,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class USceneCaptureComponent2D;
 class UTextureRenderTarget2D;
+class UUserWidget;
 
 UCLASS()
 class FYP_API ASekiroCharacter : public ACharacter {
@@ -286,6 +287,32 @@ public:
   /** 鎖定／解除鎖定（例如 Q 或 R3） */
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro Input")
   TObjectPtr<UInputAction> LockOnAction;
+
+  // ===== Full-Screen Map =====
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Map")
+  TObjectPtr<UInputAction> ToggleMapAction;
+
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Map")
+  TSubclassOf<UUserWidget> MapOverlayWidgetClass;
+
+  /** The HUD widget class to hide while the map is open (assign in BP_SekiroCharacter) */
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Map")
+  TSubclassOf<UUserWidget> GameHUDWidgetClass;
+
+  UPROPERTY()
+  TObjectPtr<UUserWidget> MapOverlayWidget;
+
+  UPROPERTY()
+  TObjectPtr<UUserWidget> CachedGameHUDWidget;
+
+  UFUNCTION(BlueprintCallable, Category = "Map")
+  void ToggleMap();
+
+  /** Called by the map widget to pan the capture camera (world XY delta) */
+  UFUNCTION(BlueprintCallable, Category = "Map")
+  void PanMapCapture(float DeltaX, float DeltaY);
+
+  bool bMapOpen = false;
 
   /** 鎖定搜尋半徑（公尺） */
   UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sekiro|LockOn",
