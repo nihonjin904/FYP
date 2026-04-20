@@ -25,6 +25,7 @@
 #include "InputMappingContext.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UI/SekiroGameHUDWidget.h"
 #include "UI/SekiroWidgetBase.h"
 #include "NiagaraFunctionLibrary.h"
@@ -879,6 +880,14 @@ void ASekiroCharacter::SetupPlayerInputComponent(
                                          this,
                                          &ASekiroCharacter::LockOnPressed);
     }
+
+    // --- Full-Screen Map Toggle (M key, works when paused) ---
+    FInputKeyBinding MapKeyBinding(FInputChord(EKeys::M), IE_Pressed);
+    MapKeyBinding.bExecuteWhenPaused = true;
+    MapKeyBinding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        ToggleMap();
+    });
+    PlayerInputComponent->KeyBindings.Add(MapKeyBinding);
   } else {
     UE_LOG(
         LogTemp, Error,
@@ -887,6 +896,88 @@ void ASekiroCharacter::SetupPlayerInputComponent(
              "the legacy system, then you will need to update this C++ file."),
         *GetNameSafe(this));
   }
+}
+
+void ASekiroCharacter::ToggleMap()
+{
+    APlayerController* PC = Cast<APlayerController>(GetController());
+    if (!PC) return;
+
+    if (bMapOpen)
+    {
+        // ── Close map ──────────────────────────────────────────
+        if (MapOverlayWidget)
+        {
+            MapOverlayWidget->RemoveFromParent();
+            MapOverlayWidget = nullptr;
+        }
+
+        // Restore HUD
+        if (CachedGameHUDWidget)
+        {
+            CachedGameHUDWidget->SetVisibility(ESlateVisibility::Visible);
+        }
+
+        // Reset MinimapCapture back to the character (it follows via attachment)
+        if (MinimapCapture)
+        {
+            MinimapCapture->SetRelativeLocation(FVector(0.f, 0.f, 600.f));
+        }
+
+        UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+        PC->SetInputMode(FInputModeGameOnly());
+        PC->SetShowMouseCursor(false);
+        bMapOpen = false;
+    }
+    else
+    {
+        // ── Open map ───────────────────────────────────────────
+
+        // Find and hide the game HUD
+        if (GameHUDWidgetClass && !CachedGameHUDWidget)
+        {
+            // Try to find an existing instance of the HUD widget
+            TArray<UUserWidget*> Found;
+            UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), Found, GameHUDWidgetClass, false);
+            if (Found.Num() > 0)
+                CachedGameHUDWidget = Found[0];
+        }
+        if (CachedGameHUDWidget)
+        {
+            CachedGameHUDWidget->SetVisibility(ESlateVisibility::Collapsed);
+        }
+
+        if (MapOverlayWidgetClass)
+        {
+            MapOverlayWidget = CreateWidget<UUserWidget>(PC, MapOverlayWidgetClass);
+            if (MapOverlayWidget)
+            {
+                MapOverlayWidget->AddToViewport(10); // above HUD
+                UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.0f);
+                FInputModeUIOnly InputMode;
+                InputMode.SetWidgetToFocus(MapOverlayWidget->TakeWidget());
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                PC->SetInputMode(InputMode);
+                PC->SetShowMouseCursor(true);
+                bMapOpen = true;
+            }
+        }
+    }
+}
+
+void ASekiroCharacter::PanMapCapture(float WorldDeltaX, float WorldDeltaY)
+{
+    if (!MinimapCapture || !bMapOpen) return;
+
+    // WorldDeltaX/Y are already in world units (cm)
+    // +WorldX = map pans "up" (north), +WorldY = map pans "right" (east)
+    FVector Loc = MinimapCapture->GetComponentLocation();
+    Loc.X += WorldDeltaX;
+    Loc.Y += WorldDeltaY;
+    MinimapCapture->SetWorldLocation(Loc);
+
+    // Force an immediate render into the RenderTarget while the game is paused
+    MinimapCapture->CaptureScene();
 }
 
 void ASekiroCharacter::Move(const FInputActionValue &Value) {
