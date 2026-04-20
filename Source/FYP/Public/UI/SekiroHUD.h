@@ -8,6 +8,9 @@ UCLASS()
 class FYP_API ASekiroHUD : public AHUD
 {
 	GENERATED_BODY()
+
+public:
+	ASekiroHUD();
 	
 public:
 	virtual void BeginPlay() override;
@@ -19,6 +22,13 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category="Sekiro|UI")
 	TObjectPtr<class USekiroWidgetBase> HUDWidget;
+
+	/** 「避」字危攻擊警告 Widget Class（自動從 /Game/UI/WBP_PerilousWarning 載入） */
+	UPROPERTY(EditDefaultsOnly, Category="Sekiro|UI")
+	TSubclassOf<class UUserWidget> PerilousWarningWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> PerilousWarningWidgetInstance;
 
 protected:
 	// 玩家事件回調

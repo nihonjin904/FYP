@@ -7,6 +7,7 @@
 
 class USekiroCombatComponent;
 class UAnimMontage;
+class UUserWidget;
 
 // ===== 「避」Perilous Attack Delegate =====
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPerilousAttackStarted);
@@ -95,4 +96,17 @@ protected:
 	/** Perilous 攻擊動畫結束回調 */
 	UFUNCTION()
 	void OnPerilousAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	// ===== 「避」字 Widget 直接顯示（繞過 HUD 依賴） =====
+	UPROPERTY()
+	TSubclassOf<UUserWidget> CachedPerilousWarningWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> PerilousWarningWidgetInstance;
+
+	void ShowPerilousWarningWidget();
+
+	/** 自身監聽自身 delegate — 任何人 Broadcast 都觸發 */
+	UFUNCTION()
+	void InternalOnPerilousAttackStarted();
 };
