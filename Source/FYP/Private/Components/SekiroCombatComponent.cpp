@@ -6,7 +6,6 @@
 #include "Components/SekiroDeflectComponent.h"
 #include "Components/SekiroEnemyAttributeComponent.h" // 危字廣播
 #include "Components/SekiroPostureComponent.h"
-#include "DrawDebugHelpers.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -520,8 +519,6 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
     }
   }
 
-  // Draw Debug Line
-  DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Red, false, 1.0f);
 }
 
 // ========== 自動攻擊窗口實現 ==========
@@ -631,6 +628,4 @@ void USekiroCombatComponent::PerformPerilousHitCheck()
                 TEXT("⚠ PERILOUS HIT — UNBLOCKABLE!"));
     }
 
-    // Debug 話氣球（橙色區分普通攻擊红色）
-    DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Orange, false, 1.0f);
 }
