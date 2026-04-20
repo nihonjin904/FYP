@@ -14,3 +14,14 @@
 2. 關 Editor
 3. Visual Studio → Rebuild
 4. 重開 Editor
+
+---
+
+## [2026-04-20] 叫用者打 /gsd-discuss-phase 4 後建議 /gsd-plan-phase 1 → 錯誤
+
+**錯誤描述：**
+- 用戶說「不是要先打 /gsd-discuss-phase 4 然後再打 /gsd-plan-phase 4 嗎？」
+- AI 之前說下一步是 `/gsd-plan-phase 1`，實際上 discuss phase 4 後應該打 `/gsd-plan-phase 4`
+
+**結論：/gsd-discuss-phase N 之後一定是 /gsd-plan-phase N（同一個 N），不是其他數字**
+
