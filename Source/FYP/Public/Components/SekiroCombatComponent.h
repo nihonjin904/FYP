@@ -151,6 +151,7 @@ public:
   FTimerHandle AttackWindowStartHandle;
   FTimerHandle AttackWindowTickHandle;
   FTimerHandle AttackWindowEndHandle;
+  FTimerHandle PerilousAttackHitHandle; // 危攻擊命中判定 Timer
 
   // 重置 Combo 到初始狀態
   UFUNCTION(BlueprintCallable, Category = "Sekiro|Combo")

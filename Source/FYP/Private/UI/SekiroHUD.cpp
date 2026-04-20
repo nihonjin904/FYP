@@ -10,6 +10,17 @@
 #include "Engine/Canvas.h"
 #include "Engine/Font.h"
 
+// ===== Constructor: 自動載入 WBP_PerilousWarning Widget Class =====
+ASekiroHUD::ASekiroHUD()
+{
+	static ConstructorHelpers::FClassFinder<UUserWidget> WarningWidgetFinder(
+		TEXT("/Game/UI/WBP_PerilousWarning"));
+	if (WarningWidgetFinder.Succeeded())
+	{
+		PerilousWarningWidgetClass = WarningWidgetFinder.Class;
+	}
+}
+
 void ASekiroHUD::BeginPlay()
 {
 	Super::BeginPlay();
@@ -149,6 +160,34 @@ void ASekiroHUD::DrawHUD()
 
 void ASekiroHUD::OnPerilousAttackStarted()
 {
+	// ===== 顯示 WBP_PerilousWarning (「避」字) Widget =====
+	if (PerilousWarningWidgetClass && GetOwningPlayerController())
+	{
+		// 首次使用時建立 Widget
+		if (!PerilousWarningWidgetInstance)
+		{
+			PerilousWarningWidgetInstance = CreateWidget<UUserWidget>(
+				GetOwningPlayerController(), PerilousWarningWidgetClass);
+		}
+
+		// 加入視口（如未加入）
+		if (PerilousWarningWidgetInstance && !PerilousWarningWidgetInstance->IsInViewport())
+		{
+			PerilousWarningWidgetInstance->AddToViewport(10);
+		}
+
+		// 計時自動隱藏
+		FTimerHandle HideHandle;
+		GetWorldTimerManager().SetTimer(HideHandle, [this]()
+		{
+			if (PerilousWarningWidgetInstance && PerilousWarningWidgetInstance->IsInViewport())
+			{
+				PerilousWarningWidgetInstance->RemoveFromViewport();
+			}
+		}, PerilousWarningDuration, false);
+	}
+
+	// ===== Canvas 「危」字（備用） =====
 	bShowPerilousWarning = true;
 	PerilousWarningTimer = PerilousWarningDuration;
 

@@ -7,6 +7,7 @@
 
 class USekiroCombatComponent;
 class UAnimMontage;
+class UUserWidget;
 
 // ===== 「避」Perilous Attack Delegate =====
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPerilousAttackStarted);
@@ -67,9 +68,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy|Perilous", meta=(ClampMin="0.1"))
 	float PerilousAttackDamageMultiplier = 2.0f;
 
-	/** Perilous 攻擊開始時廣播（用於觸發「避」字 UI） */
+	/** Perilous 攻擊開始時廣播（用於觸發「危」字 UI） */
 	UPROPERTY(BlueprintAssignable, Category="Sekiro|Enemy|Perilous")
 	FOnPerilousAttackStarted OnPerilousAttackStarted;
+
+	/** 危攻擊命中時播放的音效（預設自動載入處決聲音） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Enemy|Perilous")
+	TObjectPtr<class USoundBase> PerilousAttackHitSound;
 
 protected:
 	float TimeSinceLastAttack = 0.0f;
@@ -91,4 +96,17 @@ protected:
 	/** Perilous 攻擊動畫結束回調 */
 	UFUNCTION()
 	void OnPerilousAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	// ===== 「避」字 Widget 直接顯示（繞過 HUD 依賴） =====
+	UPROPERTY()
+	TSubclassOf<UUserWidget> CachedPerilousWarningWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> PerilousWarningWidgetInstance;
+
+	void ShowPerilousWarningWidget();
+
+	/** 自身監聽自身 delegate — 任何人 Broadcast 都觸發 */
+	UFUNCTION()
+	void InternalOnPerilousAttackStarted();
 };

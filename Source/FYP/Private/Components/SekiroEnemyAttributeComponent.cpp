@@ -10,6 +10,8 @@
 #include "Components/SekiroDeflectComponent.h"
 #include "Components/SekiroAttributeComponent.h"
 #include "Components/SekiroPostureComponent.h"
+#include "Sound/SoundBase.h"
+#include "Blueprint/UserWidget.h" // 「避」字 Widget
 
 USekiroEnemyAttributeComponent::USekiroEnemyAttributeComponent()
 {
@@ -22,13 +24,50 @@ void USekiroEnemyAttributeComponent::BeginPlay()
 
 	CombatComp = GetOwner()->FindComponentByClass<USekiroCombatComponent>();
 
+	// ===== 自動遷移策略：同步 SpecialMontages 至 PerilousAttackMontages (不清空原陣列) =====
+	// 注意：SpecialMontages 必須保留，否則 SekiroCombatComponent::RequestAttack() 的
+	//       SpecialMontages.Num() > 0 檢查會返回 false，危攻擊永遠不會播放
+	if (PerilousAttackMontages.Num() == 0 && CombatComp && CombatComp->SpecialMontages.Num() > 0)
+	{
+		PerilousAttackMontages = CombatComp->SpecialMontages; // 同步到 Perilous 清單
+		// ⚠️ 不清空 SpecialMontages！清空會導致 RequestAttack() 永遠走普通攻擊路徑
+
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green,
+				FString::Printf(TEXT("[PerilousAttack] ✅ Synced %d montages (SpecialMontages preserved)"),
+					PerilousAttackMontages.Num()));
+	}
+
 	// Debug: 顯示當前 Perilous Montage 數量
 	if (GEngine)
 	{
-		FString Msg = FString::Printf(TEXT("Perilous Montages loaded: %d"), PerilousAttackMontages.Num());
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, 
-			PerilousAttackMontages.Num() > 0 ? FColor::Cyan : FColor::Yellow, Msg);
+		FString Msg = FString::Printf(TEXT("[PerilousAttack] Montages ready: %d"), PerilousAttackMontages.Num());
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f,
+			PerilousAttackMontages.Num() > 0 ? FColor::Cyan : FColor::Red, Msg);
 	}
+
+	// ===== 自動載入危攻擊命中音效 =====
+	if (!PerilousAttackHitSound)
+	{
+		PerilousAttackHitSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/sound_effect/處決聲音.處決聲音"));
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 3.f,
+				PerilousAttackHitSound ? FColor::Green : FColor::Red,
+				PerilousAttackHitSound ? TEXT("[PerilousAttack] ✅ 音效載入成功") : TEXT("[PerilousAttack] ❌ 音效載入失敗"));
+	}
+
+	// ===== 自動載入「避」字 Widget Class =====
+	CachedPerilousWarningWidgetClass = LoadClass<UUserWidget>(
+		nullptr, TEXT("/Game/UI/WBP_PerilousWarning.WBP_PerilousWarning_C"));
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 3.f,
+			CachedPerilousWarningWidgetClass ? FColor::Green : FColor::Red,
+			CachedPerilousWarningWidgetClass
+				? TEXT("[PerilousWarning] ✅ WBP_PerilousWarning 載入成功")
+				: TEXT("[PerilousWarning] ❌ WBP_PerilousWarning 載入失敗"));
+
+	// ===== 監聽自身 delegate （任何人 Broadcast 都觸發顯示 Widget） =====
+	OnPerilousAttackStarted.AddDynamic(this, &USekiroEnemyAttributeComponent::InternalOnPerilousAttackStarted);
 }
 
 void USekiroEnemyAttributeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -251,8 +290,13 @@ bool USekiroEnemyAttributeComponent::TryPerilousAttack()
 						if (PostureComp)
 							PostureComp->AddPostureDamage(0.0f); // pause regen
 
+						// ===== 播放危攻擊命中音效 =====
+						if (PerilousAttackHitSound)
+							UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+								PerilousAttackHitSound, Owner->GetActorLocation());
+
 						if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
-							TEXT("PERILOUS HIT! Player damaged!"));
+							TEXT("[PerilousAttack] ⚠ PERILOUS HIT! Player damaged!"));
 					}
 				}
 				else
@@ -276,4 +320,57 @@ void USekiroEnemyAttributeComponent::OnPerilousAttackMontageEnded(UAnimMontage* 
 
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow,
 		FString::Printf(TEXT("Perilous Attack Ended (interrupted=%d)"), bInterrupted));
+}
+
+// ===== 「避」字 Widget 直接顯示（繞過 HUD 依賴） =====
+
+void USekiroEnemyAttributeComponent::InternalOnPerilousAttackStarted()
+{
+	ShowPerilousWarningWidget();
+}
+
+void USekiroEnemyAttributeComponent::ShowPerilousWarningWidget()
+{
+	// 取得 PlayerController
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!PC)
+	{
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("[PerilousWarning] ❌ No PlayerController"));
+		return;
+	}
+
+	if (!CachedPerilousWarningWidgetClass)
+	{
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("[PerilousWarning] ❌ Widget Class is null"));
+		return;
+	}
+
+	// 建立 Widget（只建一次，重用）
+	if (!PerilousWarningWidgetInstance)
+	{
+		PerilousWarningWidgetInstance = CreateWidget<UUserWidget>(PC, CachedPerilousWarningWidgetClass);
+	}
+
+	if (!PerilousWarningWidgetInstance)
+	{
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("[PerilousWarning] ❌ CreateWidget failed"));
+		return;
+	}
+
+	// 加入 Viewport（ZOrder=10 確保在最前）
+	if (!PerilousWarningWidgetInstance->IsInViewport())
+	{
+		PerilousWarningWidgetInstance->AddToViewport(10);
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("[PerilousWarning] ✅ 「避」字顯示！"));
+	}
+
+	// 1.5 秒後自動隱藏
+	FTimerHandle HideHandle;
+	GetWorld()->GetTimerManager().SetTimer(HideHandle, [this]()
+	{
+		if (PerilousWarningWidgetInstance && PerilousWarningWidgetInstance->IsInViewport())
+		{
+			PerilousWarningWidgetInstance->RemoveFromParent();
+		}
+	}, 1.5f, false);
 }
