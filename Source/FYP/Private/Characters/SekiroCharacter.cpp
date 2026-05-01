@@ -184,6 +184,12 @@ ASekiroCharacter::ASekiroCharacter() {
   if (ExecutionActionAsset.Succeeded())
     ExecutionAction = ExecutionActionAsset.Object;
 
+  // ===閃避系統===
+  static ConstructorHelpers::FObjectFinder<UInputAction> DodgeActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Dodge.IA_Dodge"));
+  if (DodgeActionAsset.Succeeded())
+    DodgeAction = DodgeActionAsset.Object;
+
   static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionAsset(
       TEXT("/Game/ThirdPerson/Input/Actions/IA_Jump.IA_Jump"));
   if (JumpActionAsset.Succeeded())
@@ -709,6 +715,17 @@ void ASekiroCharacter::SetupPlayerInputComponent(
     // Attacking
     EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started,
                                        this, &ASekiroCharacter::Attack);
+
+    // ===閃避系統===
+    if (DodgeAction)
+    {
+      EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started,
+                                         this, &ASekiroCharacter::Dodge);
+    }
+    else
+    {
+      UE_LOG(LogTemp, Warning, TEXT("DodgeAction is NULL in SetupPlayerInputComponent!"));
+    }
 
     // --- Vibe Coding: Dynamic Checkpoint Intercept ---
     FInputKeyBinding FKeyBinding(FInputChord(EKeys::F), IE_Pressed);
@@ -1730,4 +1747,66 @@ void ASekiroCharacter::SaveCheckpointActivated(const FString& CheckpointName)
 bool ASekiroCharacter::IsCheckpointActivated(const FString& CheckpointName) const
 {
     return ActivatedCheckpointNames.Contains(CheckpointName);
+}
+
+// ===閃避系統===
+void ASekiroCharacter::Dodge()
+{
+    // 1. Cooldown 及 Dodge 中 → 忽略輸入
+    if (!bCanDodge || bIsDodging)
+    {
+        return;
+    }
+
+    // 2. 確保 AttributeComponent 存在（直接用成員指針，無需 GetComponentByClass）
+    if (!AttributeComponent)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[DODGE] AttributeComponent is NULL — cannot set invincibility!"));
+        return;
+    }
+
+    // 3. 設定狀態
+    bIsDodging = true;
+    bCanDodge  = false;
+    AttributeComponent->bIsInvincible = true;
+
+    // 4. 計算 Dash 方向
+    //    GetLastMovementInputVector() 返回上一幀 AddMovementInput 的世界方向
+    //    Lock-on 時角色面向 Boss，GetActorForwardVector() 指向 Boss
+    //    無 WASD 輸入時 → 向後退（遠離 Boss）
+    FVector DodgeDir = GetLastMovementInputVector();
+    if (DodgeDir.IsNearlyZero())
+    {
+        DodgeDir = -GetActorForwardVector();  // 預設：遠離 Boss 方向
+    }
+    DodgeDir.Z = 0.0f;
+    DodgeDir.Normalize();
+
+    // 5. 施加瞬間位移（XY 覆蓋，不覆蓋 Z 保持重力）
+    LaunchCharacter(DodgeDir * DodgeLaunchSpeed, true, false);
+
+    UE_LOG(LogTemp, Log, TEXT("[DODGE] Dir=%s | Invincible=%.1fs | Cooldown=%.1fs"),
+           *DodgeDir.ToString(), DodgeDuration, DodgeCooldown);
+
+    // 6. DodgeDuration 後解除無敵幀
+    GetWorld()->GetTimerManager().SetTimer(
+        DodgeInvincibilityHandle,
+        [this]()
+        {
+            bIsDodging = false;
+            if (AttributeComponent)
+            {
+                AttributeComponent->bIsInvincible = false;
+            }
+        },
+        DodgeDuration, false);
+
+    // 7. DodgeCooldown 後允許再次 Dodge
+    GetWorld()->GetTimerManager().SetTimer(
+        DodgeCooldownHandle,
+        [this]()
+        {
+            bCanDodge = true;
+        },
+        DodgeCooldown, false);
 }
