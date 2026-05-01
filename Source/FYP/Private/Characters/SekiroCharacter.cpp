@@ -1758,6 +1758,12 @@ void ASekiroCharacter::Dodge()
         return;
     }
 
+    // ===死亡/Execution 中不能閃避===
+    if (bIsDead)
+    {
+        return;
+    }
+
     // 2. 確保 AttributeComponent 存在（直接用成員指針，無需 GetComponentByClass）
     if (!AttributeComponent)
     {

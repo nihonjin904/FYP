@@ -424,7 +424,11 @@ public:
 
   static constexpr float DodgeCooldown = 1.0f;
   static constexpr float DodgeDuration = 0.5f;
-  static constexpr float DodgeLaunchSpeed = 800.0f;
+
+  // ===閃避距離（可在 Editor Details 面板調整，無需 Recompile）===
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Dodge",
+            meta = (ClampMin = "200", ClampMax = "3000", UIMin = "200", UIMax = "3000"))
+  float DodgeLaunchSpeed = 1500.0f;
 
   // ===閃避動畫===
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Dodge")
