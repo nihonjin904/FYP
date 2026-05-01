@@ -1785,6 +1785,12 @@ void ASekiroCharacter::Dodge()
     // 5. 施加瞬間位移（XY 覆蓋，不覆蓋 Z 保持重力）
     LaunchCharacter(DodgeDir * DodgeLaunchSpeed, true, false);
 
+    // ===閃避動畫===
+    if (DodgeMontage)
+    {
+        PlayAnimMontage(DodgeMontage, 1.0f);
+    }
+
     UE_LOG(LogTemp, Log, TEXT("[DODGE] Dir=%s | Invincible=%.1fs | Cooldown=%.1fs"),
            *DodgeDir.ToString(), DodgeDuration, DodgeCooldown);
 

@@ -426,6 +426,10 @@ public:
   static constexpr float DodgeDuration = 0.5f;
   static constexpr float DodgeLaunchSpeed = 800.0f;
 
+  // ===閃避動畫===
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Dodge")
+  TObjectPtr<UAnimMontage> DodgeMontage;
+
 protected:
   void Move(const FInputActionValue &Value);
   void Look(const FInputActionValue &Value);
