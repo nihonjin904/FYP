@@ -192,7 +192,7 @@ ASekiroCharacter::ASekiroCharacter() {
 
   // ===閃避 Montage — 必須用 Reimu skeleton（SKEL__魔_博麗_霊夢）否則 PlayAnimMontage 回傳 0===
   static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeMontageAsset(
-      TEXT("/Game/AM_Dodge_Reimu_Test.AM_Dodge_Reimu_Test"));
+      TEXT("/Game/AM_Dodge_Reimu.AM_Dodge_Reimu"));
   if (DodgeMontageAsset.Succeeded())
     DodgeMontage = DodgeMontageAsset.Object;
 
