@@ -190,6 +190,12 @@ ASekiroCharacter::ASekiroCharacter() {
   if (DodgeActionAsset.Succeeded())
     DodgeAction = DodgeActionAsset.Object;
 
+  // ===閃避 Montage — 必須用 Reimu skeleton（SKEL__魔_博麗_霊夢）否則 PlayAnimMontage 回傳 0===
+  static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeMontageAsset(
+      TEXT("/Game/AM_Dodge_Reimu_Test.AM_Dodge_Reimu_Test"));
+  if (DodgeMontageAsset.Succeeded())
+    DodgeMontage = DodgeMontageAsset.Object;
+
   static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionAsset(
       TEXT("/Game/ThirdPerson/Input/Actions/IA_Jump.IA_Jump"));
   if (JumpActionAsset.Succeeded())
@@ -1791,10 +1797,18 @@ void ASekiroCharacter::Dodge()
     // 5. 施加瞬間位移（XY 覆蓋，不覆蓋 Z 保持重力）
     LaunchCharacter(DodgeDir * DodgeLaunchSpeed, true, false);
 
-    // ===閃避動畫===
+    // ===閃避動畫（最高優先度：中斷所有其他 Montage）===
+    UE_LOG(LogTemp, Log, TEXT("[DODGE] DodgeMontage is %s"), DodgeMontage ? TEXT("VALID") : TEXT("NULL"));
     if (DodgeMontage)
     {
-        PlayAnimMontage(DodgeMontage, 1.0f);
+        // 先中斷所有正在播放的 Montage（攻擊、格擋等），閃避優先
+        UAnimInstance* AnimInst = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+        if (AnimInst)
+        {
+            AnimInst->StopAllMontages(0.1f);  // 0.1s 快速 blend out
+        }
+        float MontageDuration = PlayAnimMontage(DodgeMontage, 1.0f);
+        UE_LOG(LogTemp, Log, TEXT("[DODGE] PlayAnimMontage returned duration=%.3f"), MontageDuration);
     }
 
     UE_LOG(LogTemp, Log, TEXT("[DODGE] Dir=%s | Invincible=%.1fs | Cooldown=%.1fs"),
