@@ -422,13 +422,13 @@ public:
   FTimerHandle DodgeCooldownHandle;
   FTimerHandle DodgeInvincibilityHandle;
 
-  static constexpr float DodgeCooldown = 1.0f;
+  static constexpr float DodgeCooldown = 0.6f;  // 1.0→0.6: 減少「按沒反應」的窗口
   static constexpr float DodgeDuration = 0.5f;
 
   // ===閃避距離（可在 Editor Details 面板調整，無需 Recompile）===
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Dodge",
             meta = (ClampMin = "200", ClampMax = "3000", UIMin = "200", UIMax = "3000"))
-  float DodgeLaunchSpeed = 1500.0f;
+  float DodgeLaunchSpeed = 700.0f;  // 1500→700: 角色移動時間足夠看到 dodge 動畫
 
   // ===閃避動畫===
   UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Dodge")

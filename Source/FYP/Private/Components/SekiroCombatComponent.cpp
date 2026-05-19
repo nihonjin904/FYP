@@ -15,6 +15,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
+#include "SekiroGameInstance.h"
+
 
 USekiroCombatComponent::USekiroCombatComponent() {
   PrimaryComponentTick.bCanEverTick = false;
@@ -41,7 +43,7 @@ void USekiroCombatComponent::RequestAttack() {
 
     // 情況 1：沒有在攻擊中 - 開始第一段攻擊
     bool bIsValidCombo0 = (ComboMontages.IsValidIndex(0) && ComboMontages[0] != nullptr);
-    SpecialAttackChance = 1.0f; // 強制 100% 發動機率，供驗證大招動畫
+    // SpecialAttackChance = 1.0f; // ⚠️ DEBUG REMOVED — 已還原為正常機率（在 BP Details 設定）
     
     if (GEngine) {
         GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, FString::Printf(TEXT("RequestAttack Pointers: IsAtk=%d, Cmb0_Valid=%d, SpclM=%d, SpclChance=%.2f"), bIsAttacking, bIsValidCombo0, SpecialMontages.Num(), SpecialAttackChance));
@@ -348,6 +350,24 @@ void USekiroCombatComponent::OnMontageEnded(UAnimMontage *Montage,
     bCanCombo = false;
     OnAttackEnded.Broadcast();
     ResetCombo();
+
+    // ===== AI Boss 自動連續攻擊循環 =====
+    // 只對 AI Boss 生效（非玩家操控）
+    AActor* Owner = GetOwner();
+    ACharacter* OwnerChar = Cast<ACharacter>(Owner);
+    if (OwnerChar && !Cast<APlayerController>(OwnerChar->GetController())) {
+      if (Owner && !Owner->ActorHasTag(FName("State.Stunned"))) {
+        float NextAttackDelay = FMath::RandRange(0.8f, 1.8f);
+        FTimerHandle AIAttackLoopHandle;
+        GetWorld()->GetTimerManager().SetTimer(AIAttackLoopHandle, [this]() {
+          AActor* O = GetOwner();
+          if (O && !O->ActorHasTag(FName("State.Stunned")) && !bIsAttacking) {
+            RequestAttack();
+          }
+        }, NextAttackDelay, false);
+      }
+    }
+    // ===== END AI Boss 自動循環 =====
   }
 }
 
@@ -451,9 +471,15 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
               FRotator::ZeroRotator, FVector(6.0f), true, true);
           }
           // Boss 身上播放精準彈刀音效
-          if (HitChar->PerfectParrySound)
+          if (HitChar->PerfectParrySound) {
+            float SFXVol = 0.25f;
+            if (UWorld* W = GetWorld()) {
+              if (USekiroGameInstance* GI = Cast<USekiroGameInstance>(W->GetGameInstance()))
+                SFXVol = GI->SFXVolume;
+            }
             UGameplayStatics::PlaySoundAtLocation(
-              GetWorld(), HitChar->PerfectParrySound, HitActor->GetActorLocation());
+              GetWorld(), HitChar->PerfectParrySound, HitActor->GetActorLocation(), SFXVol);
+          }
 
           // Boss 格擋成功後快速反擊（AI 限定）
           if (!Cast<APlayerController>(HitChar->GetController()) && HitChar->CombatComponent) {
@@ -486,9 +512,15 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
               FRotator::ZeroRotator, FVector(4.0f), true, true);
           }
           // Boss 身上播放普通格擋音效
-          if (HitChar->BlockSound)
+          if (HitChar->BlockSound) {
+            float SFXVol = 0.25f;
+            if (UWorld* W = GetWorld()) {
+              if (USekiroGameInstance* GI = Cast<USekiroGameInstance>(W->GetGameInstance()))
+                SFXVol = GI->SFXVolume;
+            }
             UGameplayStatics::PlaySoundAtLocation(
-              GetWorld(), HitChar->BlockSound, HitActor->GetActorLocation());
+              GetWorld(), HitChar->BlockSound, HitActor->GetActorLocation(), SFXVol);
+          }
 
           // Boss 格擋成功後快速反擊（AI 限定）
           if (!Cast<APlayerController>(HitChar->GetController()) && HitChar->CombatComponent) {
@@ -520,8 +552,6 @@ void USekiroCombatComponent::PerformAttackHitCheck() {
     }
   }
 
-  // Draw Debug Line
-  DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Red, false, 1.0f);
 }
 
 // ========== 自動攻擊窗口實現 ==========
@@ -630,7 +660,4 @@ void USekiroCombatComponent::PerformPerilousHitCheck()
             GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
                 TEXT("⚠ PERILOUS HIT — UNBLOCKABLE!"));
     }
-
-    // Debug 話氣球（橙色區分普通攻擊红色）
-    DrawDebugSphere(GetWorld(), End, 50.0f, 12, FColor::Orange, false, 1.0f);
 }
