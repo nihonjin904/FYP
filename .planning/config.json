@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "project": "FYP Boss Combat",
+  "owner": "Kelvin Lam",
+  "profile": "quality",
+  "workflow": {
+    "discuss_mode": "discuss",
+    "auto_commit": false
+  }
+}

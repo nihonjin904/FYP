@@ -1,5 +1,6 @@
 #include "UI/SekiroHUD.h"
 #include "UI/SekiroWidgetBase.h"
+#include "UI/SekiroMainMenuWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Characters/SekiroCharacter.h"
 #include "Components/SekiroAttributeComponent.h"
@@ -24,6 +25,16 @@ ASekiroHUD::ASekiroHUD()
 void ASekiroHUD::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// ===== 顯示主菜單（先於 HUD 初始化） =====
+	if (APlayerController* PC = GetOwningPlayerController())
+	{
+		USekiroMainMenuWidget* MainMenu = CreateWidget<USekiroMainMenuWidget>(PC);
+		if (MainMenu)
+		{
+			MainMenu->AddToViewport(100); // Z-Order 100 確保在最上層
+		}
+	}
 
 	if (HUDWidgetClass)
 	{

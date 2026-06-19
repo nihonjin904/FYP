@@ -12,4 +12,11 @@ Saved
 *.suo
 *.xcodeproj
 *.xcworkspace
-.planning/
+.planning/*.ucas
+*.pak
+*.utoc
+Binaries/
+Saved/
+Build/
+DerivedDataCache/
+exe/

@@ -34,13 +34,13 @@ public:
 
 	// Configuration
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Posture")
-	float MaxPosture = 100.0f;
+	float MaxPosture = 200.0f;  // 100→2001: 玩家可以据挻更多次
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Posture")
-	float PostureRegenRateIdle = 5.0f;
+	float PostureRegenRateIdle = 12.0f;  // 5→12: 戰鬥間隙快速回復
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Posture")
-	float PostureRegenRateBlocking = 15.0f;
+	float PostureRegenRateBlocking = 25.0f;  // 15→25: 持對密檔加快回復
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sekiro|Posture")
 	float PostureRegenDelayAfterDamage = 3.0f;

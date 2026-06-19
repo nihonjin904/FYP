@@ -412,6 +412,28 @@ public:
   /** Timer handle for any fade or delayed respawn animations */
   FTimerHandle FadeTimerHandle;
 
+  // ===閃避系統===
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro Input")
+  TObjectPtr<UInputAction> DodgeAction;
+
+  bool bIsDodging = false;
+  bool bCanDodge = true;
+
+  FTimerHandle DodgeCooldownHandle;
+  FTimerHandle DodgeInvincibilityHandle;
+
+  static constexpr float DodgeCooldown = 0.6f;  // 1.0→0.6: 減少「按沒反應」的窗口
+  static constexpr float DodgeDuration = 0.5f;
+
+  // ===閃避距離（可在 Editor Details 面板調整，無需 Recompile）===
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Dodge",
+            meta = (ClampMin = "200", ClampMax = "3000", UIMin = "200", UIMax = "3000"))
+  float DodgeLaunchSpeed = 700.0f;  // 1500→700: 角色移動時間足夠看到 dodge 動畫
+
+  // ===閃避動畫===
+  UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sekiro|Dodge")
+  TObjectPtr<UAnimMontage> DodgeMontage;
+
 protected:
   void Move(const FInputActionValue &Value);
   void Look(const FInputActionValue &Value);
@@ -420,6 +442,9 @@ protected:
   void StopBlock();
   void Execution(const FInputActionValue &Value);
   void LockOnPressed();
+
+  // ===閃避系統===
+  void Dodge();
 
   /** 用於解除鎖定時清除上一個目標嘅 Outline（Custom Depth） */
   TObjectPtr<AActor> PreviousLockedTarget;

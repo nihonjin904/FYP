@@ -28,6 +28,7 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "UI/SekiroGameHUDWidget.h"
 #include "UI/SekiroWidgetBase.h"
+#include "UI/SekiroMainMenuWidget.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "Particles/ParticleSystem.h"
@@ -184,6 +185,18 @@ ASekiroCharacter::ASekiroCharacter() {
   if (ExecutionActionAsset.Succeeded())
     ExecutionAction = ExecutionActionAsset.Object;
 
+  // ===閃避系統===
+  static ConstructorHelpers::FObjectFinder<UInputAction> DodgeActionAsset(
+      TEXT("/Game/ThirdPerson/Input/Actions/IA_Dodge.IA_Dodge"));
+  if (DodgeActionAsset.Succeeded())
+    DodgeAction = DodgeActionAsset.Object;
+
+  // ===閃避 Montage — 必須用 Reimu skeleton（SKEL__魔_博麗_霊夢）否則 PlayAnimMontage 回傳 0===
+  static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeMontageAsset(
+      TEXT("/Game/AM_Dodge_Reimu.AM_Dodge_Reimu"));
+  if (DodgeMontageAsset.Succeeded())
+    DodgeMontage = DodgeMontageAsset.Object;
+
   static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionAsset(
       TEXT("/Game/ThirdPerson/Input/Actions/IA_Jump.IA_Jump"));
   if (JumpActionAsset.Succeeded())
@@ -204,6 +217,55 @@ ASekiroCharacter::ASekiroCharacter() {
           TEXT("/Game/ThirdPerson/Input/IMC_Default.IMC_Default"));
   if (DefaultMappingAsset.Succeeded())
     DefaultMappingContext = DefaultMappingAsset.Object;
+
+  // ================================================================
+  // === Force-cook Boss (Patchouli) Montages for packaged builds ===
+  // === These are loaded via StaticLoadObject in BeginPlay, but  ===
+  // === the cooker won't detect them without hard references.    ===
+  // ================================================================
+  {
+    // Combo_Attack_01 (Boss default combo)
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> P_C01_1(TEXT("/Game/Combo_Attack_01_01_Seq_Montage_Patchouli.Combo_Attack_01_01_Seq_Montage_Patchouli"));
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> P_C01_2(TEXT("/Game/Combo_Attack_01_02_Seq_Montage_Patchouli.Combo_Attack_01_02_Seq_Montage_Patchouli"));
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> P_C01_3(TEXT("/Game/Combo_Attack_01_03_Seq_Montage_Patchouli.Combo_Attack_01_03_Seq_Montage_Patchouli"));
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> P_C01_4(TEXT("/Game/Combo_Attack_01_04_Seq_Montage_Patchouli.Combo_Attack_01_04_Seq_Montage_Patchouli"));
+
+    // Combo_Attack_03 (Reimu player combo)
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> R_C03_1(TEXT("/Game/Combo_Attack_03_01_Seq_Montage_Reimu.Combo_Attack_03_01_Seq_Montage_Reimu"));
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> R_C03_2(TEXT("/Game/Combo_Attack_03_02_Seq_Montage_Reimu.Combo_Attack_03_02_Seq_Montage_Reimu"));
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> R_C03_3(TEXT("/Game/Combo_Attack_03_03_Seq_Montage_Reimu.Combo_Attack_03_03_Seq_Montage_Reimu"));
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> R_C03_4(TEXT("/Game/Combo_Attack_03_04_Seq_Montage_Reimu.Combo_Attack_03_04_Seq_Montage_Reimu"));
+
+    // Boss perilous montages
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> P_Slash(TEXT("/Game/boss_anim_retarget/AM_Perilous_Slash_Patchouli.AM_Perilous_Slash_Patchouli"));
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> P_Thrust(TEXT("/Game/boss_anim_retarget/AM_Perilous_Thrust_Patchouli.AM_Perilous_Thrust_Patchouli"));
+
+    // We don't store these — just having FObjectFinder forces the cooker to include them.
+    (void)P_C01_1; (void)P_C01_2; (void)P_C01_3; (void)P_C01_4;
+    (void)R_C03_1; (void)R_C03_2; (void)R_C03_3; (void)R_C03_4;
+    (void)P_Slash; (void)P_Thrust;
+  }
+
+  // === Force-cook Widget Blueprints loaded via StaticLoadClass ===
+  {
+    static ConstructorHelpers::FClassFinder<UUserWidget> OverheadWBP(TEXT("/Game/WBP_Overhead"));
+    static ConstructorHelpers::FClassFinder<UUserWidget> UpgradeMenuWBP(TEXT("/Game/Blueprints/UI/WBP_UpgradeMenu"));
+    static ConstructorHelpers::FClassFinder<UUserWidget> PerilousWarnWBP(TEXT("/Game/UI/WBP_PerilousWarning"));
+    (void)OverheadWBP; (void)UpgradeMenuWBP; (void)PerilousWarnWBP;
+  }
+
+  // === Force-cook Dodge Montage (loaded via LoadObject in PerformDodge) ===
+  {
+    static ConstructorHelpers::FObjectFinder<UAnimMontage> DodgeReimu(TEXT("/Game/AM_Dodge_Reimu_Final.AM_Dodge_Reimu_Final"));
+    (void)DodgeReimu;
+  }
+
+  // === Force-cook Sound assets loaded via LoadObject ===
+  {
+    static ConstructorHelpers::FObjectFinder<USoundBase> ExecSound(TEXT("/Game/sound_effect/處決聲音.處決聲音"));
+    static ConstructorHelpers::FObjectFinder<USoundBase> BGMSound(TEXT("/Game/Audio/BGM_JapaneseShrineTheme.BGM_JapaneseShrineTheme"));
+    (void)ExecSound; (void)BGMSound;
+  }
 
   // ===== Minimap SceneCapture2D =====
   MinimapCapture = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MinimapCapture"));
@@ -710,6 +772,59 @@ void ASekiroCharacter::SetupPlayerInputComponent(
     EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started,
                                        this, &ASekiroCharacter::Attack);
 
+    // ===閃避系統===
+    if (DodgeAction)
+    {
+      EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Started,
+                                         this, &ASekiroCharacter::Dodge);
+    }
+    else
+    {
+      UE_LOG(LogTemp, Warning, TEXT("DodgeAction is NULL in SetupPlayerInputComponent!"));
+    }
+
+    // --- Vibe Coding: P Key to show Main Menu (ESC conflicts with demo exit) ---
+    FInputKeyBinding EscKeyBinding(FInputChord(EKeys::P), IE_Pressed);
+    EscKeyBinding.bExecuteWhenPaused = true;
+    EscKeyBinding.KeyDelegate.GetDelegateForManualSet().BindLambda([this]() {
+        if (APlayerController* PC = Cast<APlayerController>(this->GetController())) {
+            bool bFoundMenu = false;
+            TArray<UUserWidget*> FoundWidgets;
+            UWidgetBlueprintLibrary::GetAllWidgetsOfClass(this, FoundWidgets, USekiroMainMenuWidget::StaticClass(), false);
+            for (UUserWidget* Widget : FoundWidgets) {
+                if (USekiroMainMenuWidget* MainMenu = Cast<USekiroMainMenuWidget>(Widget)) {
+                    bFoundMenu = true;
+                    if (MainMenu->IsInViewport()) {
+                        MainMenu->RemoveFromParent();
+                        PC->SetPause(false);
+                        PC->bShowMouseCursor = false;
+                        FInputModeGameOnly GameMode;
+                        PC->SetInputMode(GameMode);
+                    } else {
+                        MainMenu->AddToViewport(100);
+                        PC->bShowMouseCursor = true;
+                        FInputModeUIOnly UIOnlyMode;
+                        UIOnlyMode.SetWidgetToFocus(MainMenu->TakeWidget());
+                        PC->SetInputMode(UIOnlyMode);
+                        PC->SetPause(true);
+                    }
+                    break;
+                }
+            }
+            if (!bFoundMenu) {
+                if (USekiroMainMenuWidget* MainMenu = CreateWidget<USekiroMainMenuWidget>(PC)) {
+                    MainMenu->AddToViewport(100);
+                    PC->bShowMouseCursor = true;
+                    FInputModeUIOnly UIOnlyMode;
+                    UIOnlyMode.SetWidgetToFocus(MainMenu->TakeWidget());
+                    PC->SetInputMode(UIOnlyMode);
+                    PC->SetPause(true);
+                }
+            }
+        }
+    });
+    PlayerInputComponent->KeyBindings.Add(EscKeyBinding);
+
     // --- Vibe Coding: Dynamic Checkpoint Intercept ---
     FInputKeyBinding FKeyBinding(FInputChord(EKeys::F), IE_Pressed);
     FKeyBinding.bExecuteWhenPaused = true;
@@ -1181,7 +1296,7 @@ void ASekiroCharacter::OnPostureBroken() {
   // Add Stunned Tag
   Tags.Add(FName("State.Stunned"));
 
-  // Optional: Disable movement or AI logic here
+  // 停止移動和攻擊
   if (GetCharacterMovement()) {
     GetCharacterMovement()->StopMovementImmediately();
   }
@@ -1189,6 +1304,43 @@ void ASekiroCharacter::OnPostureBroken() {
   if (StunMontage) {
     PlayAnimMontage(StunMontage);
   }
+
+  // ===== Boss 架勢條 Auto-Recovery =====
+  // 若 3 秒內玩家沒有處決（Deathblow），自動恢復 Boss 行動能力
+  // 防止 Boss 永遠 Stunned 而站著不動
+  if (!Cast<APlayerController>(GetController())) {
+    // 只對 AI Boss 生效，玩家不受影響
+    FTimerHandle PostureRecoveryHandle;
+    GetWorldTimerManager().SetTimer(PostureRecoveryHandle, [this]() {
+      // 移除 Stunned tag，讓 Boss 可以重新攻擊
+      Tags.Remove(FName("State.Stunned"));
+
+      // 隱藏處決提示圖示
+      if (DeathblowWidget) {
+        DeathblowWidget->SetVisibility(false);
+      }
+
+      // 重置架勢條，讓戰鬥繼續
+      if (PostureComponent) {
+        PostureComponent->ResetPosture();
+      }
+
+      // 重置 CombatComponent 攻擊狀態，防止卡在 bIsAttacking=true
+      if (CombatComponent) {
+        CombatComponent->ResetCombo();
+      }
+
+      // 重新啟動移動
+      if (GetCharacterMovement()) {
+        GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+      }
+
+      if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Cyan,
+          FString::Printf(TEXT("[%s] Posture recovered — Boss resumes!"), *GetName()));
+
+    }, 3.0f, false); // 3 秒後自動恢復
+  }
+  // ===== END Boss Auto-Recovery =====
 }
 
 void ASekiroCharacter::HandleParryResult(EParryResult Result) {
@@ -1283,9 +1435,13 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
       PlayAnimMontage(ParrySuccessMontage);
 
     // 音效 — 精準格擋嘅清脆金屬聲
-    if (PerfectParrySound)
+    if (PerfectParrySound) {
+      float SFXVol = 0.25f;
+      if (USekiroGameInstance* GI = Cast<USekiroGameInstance>(GetGameInstance()))
+        SFXVol = GI->SFXVolume;
       UGameplayStatics::PlaySoundAtLocation(this, PerfectParrySound,
-                                            ClashPoint);
+                                            ClashPoint, SFXVol);
+    }
 
     // 火花 — 精準格擋用明亮大火花
     if (PerfectParryNiagara)
@@ -1315,8 +1471,12 @@ void ASekiroCharacter::HandleParryResult(EParryResult Result) {
   }
   case EParryResult::Blocked: {
     // 音效 — 普通格擋嘅金屬碰撞聲
-    if (BlockSound)
-      UGameplayStatics::PlaySoundAtLocation(this, BlockSound, ClashPoint);
+    if (BlockSound) {
+      float SFXVol = 0.25f;
+      if (USekiroGameInstance* GI = Cast<USekiroGameInstance>(GetGameInstance()))
+        SFXVol = GI->SFXVolume;
+      UGameplayStatics::PlaySoundAtLocation(this, BlockSound, ClashPoint, SFXVol);
+    }
 
     // 火花 — 普通格擋用細啲暗啲嘅火花
     if (BlockNiagara)
@@ -1423,7 +1583,10 @@ void ASekiroCharacter::OnExecutionTriggered(AActor *Target) {
   // 處決音效
   if (ExecutionSound) {
     FVector SoundLoc = Target ? Target->GetActorLocation() : GetActorLocation();
-    UGameplayStatics::PlaySoundAtLocation(this, ExecutionSound, SoundLoc);
+    float SFXVol = 0.25f;
+    if (USekiroGameInstance* GI = Cast<USekiroGameInstance>(GetGameInstance()))
+      SFXVol = GI->SFXVolume;
+    UGameplayStatics::PlaySoundAtLocation(this, ExecutionSound, SoundLoc, SFXVol);
   }
 }
 
@@ -1615,7 +1778,7 @@ void ASekiroCharacter::DoRespawn()
 
     if (NearestCheckpoint)
     {
-        RespawnLocation = NearestCheckpoint->GetActorLocation() + FVector(200.f, 0.f, 100.f);
+        RespawnLocation = NearestCheckpoint->GetActorLocation() + FVector(0.f, 0.f, 150.f);
         bFoundLocation = true;
         UE_LOG(LogTemp, Log, TEXT("[FYP] Respawning at checkpoint: %s"), *NearestCheckpoint->GetName());
     }
@@ -1624,22 +1787,27 @@ void ASekiroCharacter::DoRespawn()
         AActor* PlayerStartActor = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass());
         if (PlayerStartActor)
         {
-            RespawnLocation = PlayerStartActor->GetActorLocation() + FVector(0.f, 0.f, 100.f);
+            RespawnLocation = PlayerStartActor->GetActorLocation() + FVector(0.f, 0.f, 150.f);
             bFoundLocation = true;
             UE_LOG(LogTemp, Log, TEXT("[FYP] No activated checkpoint — respawning at PlayerStart."));
         }
     }
 
-    // Step 4: Unfreeze animation
+    // Step 4: Unfreeze and stop death animation
     if (GetMesh())
     {
         GetMesh()->bPauseAnims = false;
         GetMesh()->bNoSkeletonUpdate = false;
+        if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
+        {
+            Anim->Montage_Stop(0.1f);
+        }
     }
 
     // Step 5: Re-enable capsule collision
     if (GetCapsuleComponent())
     {
+        GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
         GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     }
 
@@ -1647,6 +1815,7 @@ void ASekiroCharacter::DoRespawn()
     if (GetCharacterMovement())
     {
         GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+        GetCharacterMovement()->Velocity = FVector::ZeroVector;
     }
 
     // Step 7: Restore health to full (MaxHealth preserves Phase 4 upgrade bonuses)
@@ -1730,4 +1899,90 @@ void ASekiroCharacter::SaveCheckpointActivated(const FString& CheckpointName)
 bool ASekiroCharacter::IsCheckpointActivated(const FString& CheckpointName) const
 {
     return ActivatedCheckpointNames.Contains(CheckpointName);
+}
+
+// ===閃避系統===
+void ASekiroCharacter::Dodge()
+{
+    // 1. Cooldown 及 Dodge 中 → 忽略輸入
+    if (!bCanDodge || bIsDodging)
+    {
+        return;
+    }
+
+    // ===死亡/Execution 中不能閃避===
+    if (bIsDead)
+    {
+        return;
+    }
+
+    // 2. 確保 AttributeComponent 存在（直接用成員指針，無需 GetComponentByClass）
+    if (!AttributeComponent)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[DODGE] AttributeComponent is NULL — cannot set invincibility!"));
+        return;
+    }
+
+    // 3. 設定狀態
+    bIsDodging = true;
+    bCanDodge  = false;
+    AttributeComponent->bIsInvincible = true;
+
+    // 4. 計算 Dash 方向
+    //    GetLastMovementInputVector() 返回上一幀 AddMovementInput 的世界方向
+    //    Lock-on 時角色面向 Boss，GetActorForwardVector() 指向 Boss
+    //    無 WASD 輸入時 → 向後退（遠離 Boss）
+    FVector DodgeDir = GetLastMovementInputVector();
+    if (DodgeDir.IsNearlyZero())
+    {
+        DodgeDir = -GetActorForwardVector();  // 預設：遠離 Boss 方向
+    }
+    DodgeDir.Z = 0.0f;
+    DodgeDir.Normalize();
+
+    // 5. 施加瞬間位移（Root Motion=false，所以保留 LaunchCharacter）
+    LaunchCharacter(DodgeDir * DodgeLaunchSpeed, true, false);
+
+    // ===閃避動畫===
+    UAnimMontage* ActiveDodgeMontage = LoadObject<UAnimMontage>(
+        nullptr, TEXT("/Game/AM_Dodge_Reimu_Final.AM_Dodge_Reimu_Final"));
+    if (!ActiveDodgeMontage) ActiveDodgeMontage = DodgeMontage; // fallback
+    UE_LOG(LogTemp, Log, TEXT("[DODGE] Montage=%s"),
+        ActiveDodgeMontage ? *ActiveDodgeMontage->GetName() : TEXT("NULL"));
+    if (ActiveDodgeMontage)
+    {
+        UAnimInstance* AnimInst = GetMesh() ? GetMesh()->GetAnimInstance() : nullptr;
+        if (AnimInst)
+        {
+            AnimInst->StopAllMontages(0.1f);
+        }
+        float MontageDuration = PlayAnimMontage(ActiveDodgeMontage, 1.0f);
+        UE_LOG(LogTemp, Log, TEXT("[DODGE] duration=%.3f"), MontageDuration);
+    }
+
+
+    UE_LOG(LogTemp, Log, TEXT("[DODGE] Dir=%s | Invincible=%.1fs | Cooldown=%.1fs"),
+           *DodgeDir.ToString(), DodgeDuration, DodgeCooldown);
+
+    // 6. DodgeDuration 後解除無敵幀
+    GetWorld()->GetTimerManager().SetTimer(
+        DodgeInvincibilityHandle,
+        [this]()
+        {
+            bIsDodging = false;
+            if (AttributeComponent)
+            {
+                AttributeComponent->bIsInvincible = false;
+            }
+        },
+        DodgeDuration, false);
+
+    // 7. DodgeCooldown 後允許再次 Dodge
+    GetWorld()->GetTimerManager().SetTimer(
+        DodgeCooldownHandle,
+        [this]()
+        {
+            bCanDodge = true;
+        },
+        DodgeCooldown, false);
 }

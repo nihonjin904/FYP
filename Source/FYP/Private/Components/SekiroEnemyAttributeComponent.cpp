@@ -12,6 +12,7 @@
 #include "Components/SekiroPostureComponent.h"
 #include "Sound/SoundBase.h"
 #include "Blueprint/UserWidget.h" // 「避」字 Widget
+#include "SekiroGameInstance.h"     // 難度系統
 
 USekiroEnemyAttributeComponent::USekiroEnemyAttributeComponent()
 {
@@ -68,6 +69,47 @@ void USekiroEnemyAttributeComponent::BeginPlay()
 
 	// ===== 監聽自身 delegate （任何人 Broadcast 都觸發顯示 Widget） =====
 	OnPerilousAttackStarted.AddDynamic(this, &USekiroEnemyAttributeComponent::InternalOnPerilousAttackStarted);
+
+	// ===== 難度系統：讀 GameInstance 調整 Boss 數值 =====
+	if (USekiroGameInstance* GI = Cast<USekiroGameInstance>(GetWorld()->GetGameInstance()))
+	{
+		USekiroAttributeComponent* AttrComp = GetOwner()->FindComponentByClass<USekiroAttributeComponent>();
+		USekiroCombatComponent*    Combat   = CombatComp; // 已在上面初始化
+
+		switch (GI->GetDifficulty())
+		{
+		case ESekirodifficulty::Easy:
+			// === Easy: Boss 血少、攻擊慢、危攻擊少 ===
+			if (AttrComp) { AttrComp->MaxHealth *= 0.6f; AttrComp->CurrentHealth = AttrComp->MaxHealth; }
+			AttackInterval         = 4.0f;   // 原 3.0s → 更慢
+			ComboAttackCount       = 2;      // 原 4 → 更短 combo
+			PerilousAttackChance   = 0.10f;  // 原 0.3 → 10% 危攻擊
+			if (Combat) { Combat->AttackPostureDamage = 12.0f; Combat->PerilousPostureDamage = 18.0f; }
+			break;
+
+		case ESekirodifficulty::Normal:
+			// === Normal: 保持預設值 ===
+			break;
+
+		case ESekirodifficulty::Hard:
+			// === Hard: Boss 血多、攻擊快、危攻擊多 ===
+			if (AttrComp) { AttrComp->MaxHealth *= 1.5f; AttrComp->CurrentHealth = AttrComp->MaxHealth; }
+			AttackInterval         = 2.0f;   // 更快攻擊
+			ComboAttackCount       = 6;      // 更長 combo
+			PerilousAttackChance   = 0.55f;  // 55% 危攻擊
+			ComboAttackInterval    = 0.35f;  // combo 間隔更短
+			if (Combat) { Combat->AttackPostureDamage = 28.0f; Combat->PerilousPostureDamage = 40.0f; }
+			break;
+		}
+
+		if (GEngine)
+		{
+			const FString DiffStr = (GI->GetDifficulty() == ESekirodifficulty::Easy)   ? TEXT("Easy") :
+			                        (GI->GetDifficulty() == ESekirodifficulty::Hard)   ? TEXT("Hard") : TEXT("Normal");
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow,
+				FString::Printf(TEXT("[Difficulty] Boss scaled to: %s"), *DiffStr));
+		}
+	}
 }
 
 void USekiroEnemyAttributeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -227,89 +269,90 @@ bool USekiroEnemyAttributeComponent::TryPerilousAttack()
 	UAnimMontage* PerilMontage = PerilousAttackMontages[Idx];
 	if (!PerilMontage) return false;
 
-	// 播放 Perilous 攻擊動畫
-	float Duration = AnimInst->Montage_Play(PerilMontage, 1.0f);
-	if (Duration <= 0.0f) return false;
-
-	bIsPerilousAttacking = true;
-
-	// 廣播事件 → BP_SekiroEnemy 收到後顯示「避」字 UI
+	// ===== 提前 0.8s 廣播「危/避」字 → 玩家有更多時間反應 =====
+	// 先廣播，0.8s 後才播動畫，玩家有 ~1.6s 反應窗口
 	OnPerilousAttackStarted.Broadcast();
-
 	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
 		TEXT("⚠ BOSS: PERILOUS ATTACK!"));
 
-	// 綁定 Montage 結束回調
-	FOnMontageEnded EndDelegate;
-	EndDelegate.BindUObject(this, &USekiroEnemyAttributeComponent::OnPerilousAttackMontageEnded);
-	AnimInst->Montage_SetEndDelegate(EndDelegate, PerilMontage);
+	bIsPerilousAttacking = true;
 
-	// 在動畫中段執行攻擊判定（用 Attack.Perilous Tag）
-	float HitTime = Duration * 0.4f; // 動畫 40% 時觸發命中判定
-	GetWorld()->GetTimerManager().SetTimer(
-		ComboTimerHandle, // 複用 timer handle
-		[this]() {
-			// 執行 Perilous 攻擊命中判定
-			AActor* Owner = GetOwner();
-			if (!Owner) return;
+	// 0.8s 後播放動畫 + 設置命中判定
+	FTimerHandle DelayHandle;
+	GetWorld()->GetTimerManager().SetTimer(DelayHandle, [this, PerilMontage, AnimInst]()
+	{
+		if (!AnimInst || !PerilMontage) return;
 
-			static const FGameplayTag PerilousTag = 
-				FGameplayTag::RequestGameplayTag(FName("Attack.Perilous"), false);
+		float Duration = AnimInst->Montage_Play(PerilMontage, 1.0f);
+		if (Duration <= 0.0f) { bIsPerilousAttacking = false; return; }
 
-			// Sphere trace 找目標
-			FVector Start = Owner->GetActorLocation();
-			FVector End = Start + (Owner->GetActorForwardVector() * 250.0f);
-			FHitResult HitResult;
-			FCollisionQueryParams QueryParams;
-			QueryParams.AddIgnoredActor(Owner);
+		// 綁定 Montage 結束回調
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &USekiroEnemyAttributeComponent::OnPerilousAttackMontageEnded);
+		AnimInst->Montage_SetEndDelegate(EndDelegate, PerilMontage);
 
-			bool bHit = GetWorld()->SweepSingleByChannel(
-				HitResult, Start, End, FQuat::Identity, ECC_Pawn,
-				FCollisionShape::MakeSphere(80.0f), QueryParams);
+		// 在動畫中段執行攻擊判定（用 Attack.Perilous Tag）
+		float HitTime = Duration * 0.4f;
+		GetWorld()->GetTimerManager().SetTimer(
+			ComboTimerHandle,
+			[this]() {
+				AActor* Owner = GetOwner();
+				if (!Owner) return;
 
-			if (bHit && HitResult.GetActor())
-			{
-				AActor* HitActor = HitResult.GetActor();
+				static const FGameplayTag PerilousTag = 
+					FGameplayTag::RequestGameplayTag(FName("Attack.Perilous"), false);
 
-				USekiroDeflectComponent* DeflectComp = 
-					HitActor->FindComponentByClass<USekiroDeflectComponent>();
-				USekiroAttributeComponent* AttrComp =
-					HitActor->FindComponentByClass<USekiroAttributeComponent>();
-				USekiroPostureComponent* PostureComp =
-					HitActor->FindComponentByClass<USekiroPostureComponent>();
+				FVector Start = Owner->GetActorLocation();
+				FVector End = Start + (Owner->GetActorForwardVector() * 250.0f);
+				FHitResult HitResult;
+				FCollisionQueryParams QueryParams;
+				QueryParams.AddIgnoredActor(Owner);
 
-				if (DeflectComp)
+				bool bHit = GetWorld()->SweepSingleByChannel(
+					HitResult, Start, End, FQuat::Identity, ECC_Pawn,
+					FCollisionShape::MakeSphere(80.0f), QueryParams);
+
+				if (bHit && HitResult.GetActor())
 				{
-					// TryParry 會檢查 Attack.Perilous tag → 強制 Failed
-					EParryResult Result = DeflectComp->TryParry(PerilousTag);
-					if (Result == EParryResult::Failed)
+					AActor* HitActor = HitResult.GetActor();
+					USekiroDeflectComponent* DeflectComp = 
+						HitActor->FindComponentByClass<USekiroDeflectComponent>();
+					USekiroAttributeComponent* AttrComp =
+						HitActor->FindComponentByClass<USekiroAttributeComponent>();
+					USekiroPostureComponent* PostureComp =
+						HitActor->FindComponentByClass<USekiroPostureComponent>();
+
+					if (DeflectComp)
 					{
-						// Perilous 攻擊命中：加倍傷害
+						EParryResult Result = DeflectComp->TryParry(PerilousTag);
+						if (Result == EParryResult::Failed)
+						{
+							if (AttrComp)
+								AttrComp->ApplyDamage(10.0f * PerilousAttackDamageMultiplier);
+							if (PostureComp)
+								PostureComp->AddPostureDamage(0.0f);
+							if (PerilousAttackHitSound) {
+								float SFXVol = 0.25f;
+								if (USekiroGameInstance* GI = Cast<USekiroGameInstance>(GetWorld()->GetGameInstance()))
+									SFXVol = GI->SFXVolume;
+								UGameplayStatics::PlaySoundAtLocation(GetWorld(),
+									PerilousAttackHitSound, Owner->GetActorLocation(), SFXVol);
+							}
+							if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
+								TEXT("[PerilousAttack] ⚠ PERILOUS HIT! Player damaged!"));
+						}
+					}
+					else
+					{
 						if (AttrComp)
 							AttrComp->ApplyDamage(10.0f * PerilousAttackDamageMultiplier);
-						if (PostureComp)
-							PostureComp->AddPostureDamage(0.0f); // pause regen
-
-						// ===== 播放危攻擊命中音效 =====
-						if (PerilousAttackHitSound)
-							UGameplayStatics::PlaySoundAtLocation(GetWorld(),
-								PerilousAttackHitSound, Owner->GetActorLocation());
-
-						if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
-							TEXT("[PerilousAttack] ⚠ PERILOUS HIT! Player damaged!"));
 					}
 				}
-				else
-				{
-					// 沒有 DeflectComp → 直接扣血
-					if (AttrComp)
-						AttrComp->ApplyDamage(10.0f * PerilousAttackDamageMultiplier);
-				}
-			}
+				ComboTimerHandle.Invalidate();
+			},
+			HitTime, false);
 
-			ComboTimerHandle.Invalidate();
-		},
-		HitTime, false);
+	}, 0.8f, false);
 
 	return true;
 }
